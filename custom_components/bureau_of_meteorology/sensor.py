@@ -36,6 +36,7 @@ DAILY_FORECAST = {
     "uv_max_index": ["UV Max Index", "UV", None],
     "rain_amount_min": ["Rain Amount Min", "mm", None],
     "rain_amount_max": ["Rain Amount Max", "mm", None],
+    "rain_amount_range": ["Rain Amount Range", "mm", None],
     "rain_chance": ["Rain Chance", "%", None],
     "fire_danger": ["Fire Danger", None, None],
 }
@@ -43,10 +44,13 @@ DAILY_FORECAST = {
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
     collector = hass.data[DOMAIN][config_entry.entry_id]
+
     await collector.get_observations_data()
     await collector.get_daily_forecasts_data()
+
     station_name = collector.observations_data["data"]["station"]["name"]
     new_devices = []
+
     for observation in collector.observations_data["data"]:
         if observation in OBSERVATIONS:
             new_devices.append(ObservationSensor(collector, station_name, observation))
@@ -55,6 +59,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         for forecast in collector.daily_forecasts_data["data"][day]:
             if forecast in DAILY_FORECAST:
                 new_devices.append(ForecastSensor(collector, station_name, day, forecast))
+        new_devices.append(ForecastSensor(collector, station_name, day, "rain_amount_range"))
 
     if new_devices:
         async_add_devices(new_devices)
@@ -132,7 +137,18 @@ class ForecastSensor(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self.collector.daily_forecasts_data["data"][self.day][self.forecast]
+        if self.forecast == "rain_amount_range":
+            if self.collector.daily_forecasts_data["data"][self.day]["rain_amount_max"] is not None:
+                state = "{} to {}".format(
+                    self.collector.daily_forecasts_data["data"][self.day]["rain_amount_min"],
+                    self.collector.daily_forecasts_data["data"][self.day]["rain_amount_max"]
+                )
+            else:
+                state = self.collector.daily_forecasts_data["data"][self.day]["rain_amount_min"]
+        else:
+            state = self.collector.daily_forecasts_data["data"][self.day][self.forecast]
+        return (state[:251] + '...') if type(state) == str and len(
+                state) > 251 else state
 
     @property
     def unit_of_measurement(self):
