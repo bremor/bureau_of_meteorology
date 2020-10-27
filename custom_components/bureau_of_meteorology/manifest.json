@@ -1,0 +1,12 @@
+{
+  "domain": "bureau_of_meteorology",
+  "name": "Bureau of Meteorology",
+  "config_flow": true,
+  "documentation": "https://github.com/bremor/bureau_of_meteorology",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": ["@bremor"]
+}

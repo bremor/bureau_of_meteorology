@@ -1,0 +1,20 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+        },
+        "error": {
+            "cannot_connect": "Cannot connect",
+            "unknown": "Unknown error"
+        },
+        "step": {
+            "user": {
+                "title": "Set up Bureau of Meteorology",
+                "data": {
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                }
+            }
+        }
+   }
+}
