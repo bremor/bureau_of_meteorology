@@ -5,6 +5,7 @@ from homeassistant.const import (
     ATTR_ATTRIBUTION,
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_TIMESTAMP,
     #LENGTH_MILLIMETERS,
     #PERCENTAGE,
     TEMP_CELSIUS,
@@ -34,6 +35,8 @@ DAILY_FORECAST = {
     "short_text": ["Short Text", None, None],
     "uv_category": ["UV Category", None, None],
     "uv_max_index": ["UV Max Index", "UV", None],
+    "uv_start_time": ["UV Start Time", "UV", DEVICE_CLASS_TIMESTAMP],
+    "uv_end_time": ["UV End Time", "UV", DEVICE_CLASS_TIMESTAMP],
     "rain_amount_min": ["Rain Amount Min", "mm", None],
     "rain_amount_max": ["Rain Amount Max", "mm", None],
     "rain_amount_range": ["Rain Amount Range", "mm", None],
@@ -47,8 +50,10 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     await collector.get_observations_data()
     await collector.get_daily_forecasts_data()
+    await collector.get_location_name()
 
     station_name = collector.observations_data["data"]["station"]["name"]
+    forecast_region = collector.daily_forecasts_data["metadata"]["forecast_region"]
     new_devices = []
 
     for observation in collector.observations_data["data"]:
@@ -58,8 +63,8 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     for day in range(0,6):
         for forecast in collector.daily_forecasts_data["data"][day]:
             if forecast in DAILY_FORECAST:
-                new_devices.append(ForecastSensor(collector, station_name, day, forecast))
-        new_devices.append(ForecastSensor(collector, station_name, day, "rain_amount_range"))
+                new_devices.append(ForecastSensor(collector, collector.location_name, day, forecast))
+        new_devices.append(ForecastSensor(collector, collector.location_name, day, "rain_amount_range"))
 
     if new_devices:
         async_add_devices(new_devices)
@@ -115,17 +120,17 @@ class ObservationSensor(Entity):
 class ForecastSensor(Entity):
     """Base representation of a BOM Forecast Sensor."""
 
-    def __init__(self, collector, station_name, day, forecast):
+    def __init__(self, collector, location_name, day, forecast):
         """Initialize the sensor."""
         self.collector = collector
-        self.station_name = station_name
+        self.location_name = location_name
         self.day = day
         self.forecast = forecast
 
     @property
     def unique_id(self):
         """Return Unique ID string."""
-        return f"{self.station_name}_{self.day}_{self.forecast}"
+        return f"{self.location_name}_{self.day}_{self.forecast}"
 
     @property
     def device_state_attributes(self):
@@ -158,7 +163,7 @@ class ForecastSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.station_name} {DAILY_FORECAST[self.forecast][0]} {self.day}"
+        return f"{self.location_name} {DAILY_FORECAST[self.forecast][0]} {self.day}"
 
     @property
     def device_class(self):
