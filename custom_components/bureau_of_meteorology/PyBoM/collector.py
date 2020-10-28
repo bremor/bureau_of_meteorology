@@ -9,8 +9,9 @@ from homeassistant.util import Throttle
 _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=10)
-OBSERVATIONS_URL = "https://api.weather.bom.gov.au/v1/locations/{}/observations"
 DAILY_FORECASTS_URL = "https://api.weather.bom.gov.au/v1/locations/{}/forecasts/daily"
+LOCATIONS_URL = "https://api.weather.bom.gov.au/v1/locations/{}"
+OBSERVATIONS_URL = "https://api.weather.bom.gov.au/v1/locations/{}/observations"
 
 
 class Collector:
@@ -22,6 +23,17 @@ class Collector:
         self.daily_forecasts_data = None
         self.geohash = self.geohash_encode(latitude, longitude)
         _LOGGER.debug(f"geohash: {self.geohash}")
+
+    async def get_location_name(self):
+        """Get JSON location name from BOM API endpoint."""
+        url = LOCATIONS_URL.format(self.geohash)
+
+        async with aiohttp.ClientSession() as session:
+            response = await session.get(url)
+
+        if response is not None and response.status == 200:
+            locations_data = await response.json()
+            self.location_name = locations_data["data"]["name"]
 
     async def get_observations_data(self):
         """Get JSON observations data from BOM API endpoint."""
@@ -61,6 +73,8 @@ class Collector:
         for day in range(0, 6):
             flattened["uv_category"] = self.daily_forecasts_data["data"][day]["uv"]["category"]
             flattened["uv_max_index"] = self.daily_forecasts_data["data"][day]["uv"]["max_index"]
+            flattened["uv_start_time"] = self.daily_forecasts_data["data"][day]["uv"]["start_time"]
+            flattened["uv_end_time"] = self.daily_forecasts_data["data"][day]["uv"]["end_time"]
             flattened["rain_amount_min"] = self.daily_forecasts_data["data"][day]["rain"]["amount"]["min"]
             flattened["rain_amount_max"] = self.daily_forecasts_data["data"][day]["rain"]["amount"]["max"]
             flattened["rain_chance"] = self.daily_forecasts_data["data"][day]["rain"]["chance"]
