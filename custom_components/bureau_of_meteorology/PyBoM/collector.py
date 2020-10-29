@@ -44,8 +44,26 @@ class Collector:
 
         if response is not None and response.status == 200:
             self.observations_data = await response.json()
-            await self.flatten_data()
+            await self.flatten_observations_data()
             return True
+
+    async def flatten_observations_data(self):
+        """Flatten out wind and gust data."""
+        flattened = {}
+
+        flattened["wind_speed_kilometre"] = self.observations_data["data"]["wind"]["speed_kilometre"]
+        flattened["wind_speed_knot"] = self.observations_data["data"]["wind"]["speed_knot"]
+        flattened["wind_direction"] = self.observations_data["data"]["wind"]["direction"]
+
+        if self.observations_data["data"]["gust"] is not None:
+            flattened["gust_speed_kilometre"] = self.observations_data["data"]["gust"]["speed_kilometre"]
+            flattened["gust_speed_knot"] = self.observations_data["data"]["gust"]["speed_knot"]
+        else:
+            flattened["gust_speed_kilometre"] = None
+            flattened["gust_speed_knot"] = None
+
+        self.observations_data["data"].update(flattened)
+
 
     async def get_daily_forecasts_data(self):
         """Get JSON daily forecasts data from BOM API endpoint."""
@@ -57,15 +75,6 @@ class Collector:
         if response is not None and response.status == 200:
             self.daily_forecasts_data = await response.json()
             await self.flatten_forecast_data()
-
-    async def flatten_data(self):
-        """Flatten out wind and gust data."""
-        flattened = {}
-        for observation in self.observations_data["data"]:
-            if observation == "wind" or observation == "gust":
-                for sub_observation in self.observations_data["data"][observation]:
-                    flattened[f"{observation}_{sub_observation}"] = self.observations_data["data"][observation][sub_observation]
-        self.observations_data["data"].update(flattened)
 
     async def flatten_forecast_data(self):
         """Flatten out forecast data."""
