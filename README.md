@@ -6,7 +6,7 @@ The `bureau_of_meteorology` sensor platform uses the [Bureau of Meteorology (BOM
 
 ### 1. Easy Mode
 
-Add this repo as a custom repository within HACS.
+Add this repo as a custom repository within HACS. This is not currently in the default HACS store, you must add it manually.
 
 ### 2. Manual
 
