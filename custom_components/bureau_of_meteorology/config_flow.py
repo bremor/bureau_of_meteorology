@@ -29,8 +29,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 collector = Collector(
-                    self.hass.config.latitude,
-                    self.hass.config.longitude
+                    user_input[CONF_LATITUDE],
+                    user_input[CONF_LONGITUDE],
                 )
                 await collector.get_location_name()
                 result = await collector.get_observations_data()
