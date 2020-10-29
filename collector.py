@@ -1,9 +1,9 @@
 """BOM data 'collector' that downloads the observation data."""
 import asyncio
 import datetime
-import aiohttp
 import logging
 
+import aiohttp
 from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,22 +64,38 @@ class Collector:
         for observation in self.observations_data["data"]:
             if observation == "wind" or observation == "gust":
                 for sub_observation in self.observations_data["data"][observation]:
-                    flattened[f"{observation}_{sub_observation}"] = self.observations_data["data"][observation][sub_observation]
+                    flattened[
+                        f"{observation}_{sub_observation}"
+                    ] = self.observations_data["data"][observation][sub_observation]
         self.observations_data["data"].update(flattened)
 
     async def flatten_forecast_data(self):
         """Flatten out forecast data."""
         flattened = {}
         for day in range(0, 6):
-            flattened["uv_category"] = self.daily_forecasts_data["data"][day]["uv"]["category"]
-            flattened["uv_max_index"] = self.daily_forecasts_data["data"][day]["uv"]["max_index"]
-            flattened["uv_start_time"] = self.daily_forecasts_data["data"][day]["uv"]["start_time"]
-            flattened["uv_end_time"] = self.daily_forecasts_data["data"][day]["uv"]["end_time"]
-            flattened["rain_amount_min"] = self.daily_forecasts_data["data"][day]["rain"]["amount"]["min"]
-            flattened["rain_amount_max"] = self.daily_forecasts_data["data"][day]["rain"]["amount"]["max"]
-            flattened["rain_chance"] = self.daily_forecasts_data["data"][day]["rain"]["chance"]
+            flattened["uv_category"] = self.daily_forecasts_data["data"][day]["uv"][
+                "category"
+            ]
+            flattened["uv_max_index"] = self.daily_forecasts_data["data"][day]["uv"][
+                "max_index"
+            ]
+            flattened["uv_start_time"] = self.daily_forecasts_data["data"][day]["uv"][
+                "start_time"
+            ]
+            flattened["uv_end_time"] = self.daily_forecasts_data["data"][day]["uv"][
+                "end_time"
+            ]
+            flattened["rain_amount_min"] = self.daily_forecasts_data["data"][day][
+                "rain"
+            ]["amount"]["min"]
+            flattened["rain_amount_max"] = self.daily_forecasts_data["data"][day][
+                "rain"
+            ]["amount"]["max"]
+            flattened["rain_chance"] = self.daily_forecasts_data["data"][day]["rain"][
+                "chance"
+            ]
             self.daily_forecasts_data["data"][day].update(flattened)
-        
+
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Refresh the data on the collector object."""
@@ -87,7 +103,7 @@ class Collector:
         await self.get_daily_forecasts_data()
 
     def geohash_encode(self, latitude, longitude, precision=6):
-        base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
+        base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
         lat_interval = (-90.0, 90.0)
         lon_interval = (-180.0, 180.0)
         geohash = []
@@ -117,4 +133,4 @@ class Collector:
                 geohash += base32[ch]
                 bit = 0
                 ch = 0
-        return ''.join(geohash)
+        return "".join(geohash)
