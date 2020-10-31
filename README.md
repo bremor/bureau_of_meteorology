@@ -6,7 +6,8 @@ The `bureau_of_meteorology` sensor platform uses the [Bureau of Meteorology (BOM
 
 ### 1. Easy Mode
 
-Add this repo as a custom repository within HACS. This is not currently in the default HACS store, you must add it manually.
+1. Add this repo as a custom repository within HACS. This is not currently in the default HACS store, you must add it manually.
+2. After adding this as a custom repo, you must also install this integration within HACS.
 
 ### 2. Manual
 
@@ -37,7 +38,7 @@ After a correct installation, your configuration directory should look like the 
 
 # Configuration
 1. Goto the `Configuration` -> `Integrations` page.  
-2. On the bottom right of the page, click on the Orange `+` sign to add an integration.
+2. On the bottom right of the page, click on the `+` sign to add an integration.
 3. Search for `Bureau of Meteorology`. (If you don't see it, try refreshing your browser page to reload the cache.)
 4. Enter the required information. (Latitude/Longitude)
 
