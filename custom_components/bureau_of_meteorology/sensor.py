@@ -157,7 +157,7 @@ class ForecastSensor(Entity):
 
     @property
     def unit_of_measurement(self):
-        """Return the unit of measurement."""
+        """Return the unit of measurement of the sensor."""
         return DAILY_FORECAST[self.forecast][1]
 
     @property
@@ -167,7 +167,7 @@ class ForecastSensor(Entity):
 
     @property
     def device_class(self):
-        """Return the name of the sensor."""
+        """Return the device class of the sensor."""
         return DAILY_FORECAST[self.forecast][2]
 
     async def async_update(self):
