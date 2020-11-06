@@ -29,7 +29,7 @@ class Collector:
         url = LOCATIONS_URL.format(self.geohash)
 
         async with aiohttp.ClientSession() as session:
-            response = await session.get(url)
+            response = await session.get(url, ssl=False)
 
         if response is not None and response.status == 200:
             locations_data = await response.json()
@@ -40,7 +40,7 @@ class Collector:
         url = OBSERVATIONS_URL.format(self.geohash)
 
         async with aiohttp.ClientSession() as session:
-            response = await session.get(url)
+            response = await session.get(url, ssl=False)
 
         if response is not None and response.status == 200:
             self.observations_data = await response.json()
@@ -70,7 +70,7 @@ class Collector:
         url = DAILY_FORECASTS_URL.format(self.geohash)
 
         async with aiohttp.ClientSession() as session:
-            response = await session.get(url)
+            response = await session.get(url, ssl=False)
 
         if response is not None and response.status == 200:
             self.daily_forecasts_data = await response.json()
