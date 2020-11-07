@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from .PyBoM.collector import Collector
 from .const import DOMAIN
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "weather"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -18,11 +18,17 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up BOM from a config entry."""
-    hass.data[DOMAIN][entry.entry_id] = Collector(
+    collector = Collector(
         entry.data["latitude"],
         entry.data["longitude"]
     )
-    
+
+    await collector.get_location_name()
+    await collector.get_observations_data()
+    await collector.get_daily_forecasts_data()
+
+    hass.data[DOMAIN][entry.entry_id] = collector
+
     for component in PLATFORMS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
