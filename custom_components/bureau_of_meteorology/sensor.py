@@ -11,7 +11,7 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 from homeassistant.helpers.entity import Entity
-from .const import DOMAIN
+from .const import ATTRIBUTION, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,10 +47,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
     collector = hass.data[DOMAIN][config_entry.entry_id]
 
-    await collector.get_observations_data()
-    await collector.get_daily_forecasts_data()
-    await collector.get_location_name()
-
     station_name = collector.observations_data["data"]["station"]["name"]
     forecast_region = collector.daily_forecasts_data["metadata"]["forecast_region"]
     new_devices = []
@@ -59,7 +55,8 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         if observation in SENSOR_NAMES:
             new_devices.append(ObservationSensor(collector, station_name, observation))
 
-    for day in range(0,6):
+    days = len(collector.daily_forecasts_data["data"])
+    for day in range(0, days):
         for forecast in collector.daily_forecasts_data["data"][day]:
             if forecast in SENSOR_NAMES:
                 new_devices.append(ForecastSensor(collector, collector.location_name, day, forecast))
@@ -109,7 +106,7 @@ class ObservationSensor(SensorBase):
         """Return the state attributes of the sensor."""
         attr = self.collector.observations_data["metadata"]
         attr.update(self.collector.observations_data["data"]["station"])
-        attr[ATTR_ATTRIBUTION] = "Data provided by the Australian Bureau of Meteorology"
+        attr[ATTR_ATTRIBUTION] = ATTRIBUTION
         return attr
 
     @property
@@ -140,7 +137,7 @@ class ForecastSensor(SensorBase):
     def device_state_attributes(self):
         """Return the state attributes of the sensor."""
         attr = self.collector.daily_forecasts_data["metadata"]
-        attr[ATTR_ATTRIBUTION] = "Data provided by the Australian Bureau of Meteorology"
+        attr[ATTR_ATTRIBUTION] = ATTRIBUTION
         return attr
 
     @property
