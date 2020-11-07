@@ -109,7 +109,8 @@ class Collector:
     async def flatten_forecast_data(self):
         """Flatten out forecast data."""
         flattened = {}
-        for day in range(0, 6):
+        days = len(self.daily_forecasts_data["data"])
+        for day in range(0, days):
             icon = self.daily_forecasts_data["data"][day]["icon_descriptor"]
             flattened["mdi_icon"] = MDI_ICON_MAP[icon]
 
