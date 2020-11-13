@@ -121,9 +121,14 @@ class Collector:
             flattened["uv_end_time"] = uv["end_time"]
 
             rain = self.daily_forecasts_data["data"][day]["rain"]
-            flattened["rain_amount_min"] = rain["amount"]["min"]
-            flattened["rain_amount_max"] = rain["amount"]["max"]
             flattened["rain_chance"] = rain["chance"]
+            flattened["rain_amount_min"] = rain["amount"]["min"]
+
+            # When rain amount max is None, set as rain amount min
+            if rain["amount"]["max"] is None:
+                flattened["rain_amount_max"] = flattened["rain_amount_min"]
+            else:
+                flattened["rain_amount_max"] = rain["amount"]["max"]
 
             self.daily_forecasts_data["data"][day].update(flattened)
 
