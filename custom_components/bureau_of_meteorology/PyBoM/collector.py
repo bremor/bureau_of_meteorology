@@ -9,35 +9,37 @@ from homeassistant.util import Throttle
 _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = datetime.timedelta(minutes=10)
-DAILY_FORECASTS_URL = "https://api.weather.bom.gov.au/v1/locations/{}/forecasts/daily"
-LOCATIONS_URL = "https://api.weather.bom.gov.au/v1/locations/{}"
+BASE_URL = "https://api.weather.bom.gov.au"
+DAILY_FORECASTS_URL = "/v1/locations/{}/forecasts/daily"
+LOCATIONS_URL = "/v1/locations/{}"
 MDI_ICON_MAP = {
-    'clear': 'mdi:weather-night',
-    'cloudy': 'mdi:weather-cloudy',
-    'cyclone': 'mdi:weather-hurricane',
-    'dust': 'mdi:weather-hazy',
-    'dusty': 'mdi:weather-hazy',
-    'fog': 'mdi:weather-fog',
-    'frost': 'mdi:snowflake-melt',
-    'haze': 'mdi:weather-hazy',
-    'hazy': 'mdi:weather-hazy',
-    'heavy_shower': 'mdi:weather-pouring',
-    'heavy_showers': 'mdi:weather-pouring',
-    'light_rain': 'mdi:weather-partly-rainy',
-    'light_shower': 'mdi:weather-light-showers',
-    'light_showers': 'mdi:weather-light-showers',
+    "clear": "mdi:weather-night",
+    "cloudy": "mdi:weather-cloudy",
+    "cyclone": "mdi:weather-hurricane",
+    "dust": "mdi:weather-hazy",
+    "dusty": "mdi:weather-hazy",
+    "fog": "mdi:weather-fog",
+    "frost": "mdi:snowflake-melt",
+    "haze": "mdi:weather-hazy",
+    "hazy": "mdi:weather-hazy",
+    "heavy_shower": "mdi:weather-pouring",
+    "heavy_showers": "mdi:weather-pouring",
+    "light_rain": "mdi:weather-partly-rainy",
+    "light_shower": "mdi:weather-light-showers",
+    "light_showers": "mdi:weather-light-showers",
     "mostly_sunny": "mdi:weather-sunny",
-    'partly_cloudy': 'mdi:weather-partly-cloudy',
-    'rain': 'mdi:weather-pouring',
-    'shower': 'mdi:weather-rainy',
-    'showers': 'mdi:weather-rainy',
-    'snow': 'mdi:weather-snowy',
-    'storm': 'mdi:weather-lightning-rainy',
-    'storms': 'mdi:weather-lightning-rainy',
-    'sunny': 'mdi:weather-sunny',
-    'tropical_cyclone': 'mdi:weather-hurricane',
-    'wind': 'mdi:weather-windy',
-    'windy': 'mdi:weather-windy',
+    "partly_cloudy": "mdi:weather-partly-cloudy",
+    "rain": "mdi:weather-pouring",
+    "shower": "mdi:weather-rainy",
+    "showers": "mdi:weather-rainy",
+    "snow": "mdi:weather-snowy",
+    "storm": "mdi:weather-lightning-rainy",
+    "storms": "mdi:weather-lightning-rainy",
+    "sunny": "mdi:weather-sunny",
+    "tropical_cyclone": "mdi:weather-hurricane",
+    "wind": "mdi:weather-windy",
+    "windy": "mdi:weather-windy",
+    None: None,
 }
 OBSERVATIONS_URL = "https://api.weather.bom.gov.au/v1/locations/{}/observations"
 
@@ -54,7 +56,7 @@ class Collector:
 
     async def get_location_name(self):
         """Get JSON location name from BOM API endpoint."""
-        url = LOCATIONS_URL.format(self.geohash)
+        url = BASE_URL + LOCATIONS_URL.format(self.geohash)
 
         async with aiohttp.ClientSession() as session:
             response = await session.get(url)
@@ -97,7 +99,7 @@ class Collector:
 
     async def get_daily_forecasts_data(self):
         """Get JSON daily forecasts data from BOM API endpoint."""
-        url = DAILY_FORECASTS_URL.format(self.geohash)
+        url = BASE_URL + DAILY_FORECASTS_URL.format(self.geohash)
 
         async with aiohttp.ClientSession() as session:
             response = await session.get(url)
