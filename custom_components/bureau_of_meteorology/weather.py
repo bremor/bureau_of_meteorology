@@ -15,6 +15,35 @@ from .const import ATTRIBUTION, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+CONDITION_MAP = {
+    'clear': 'clear-night',
+    'cloudy': 'cloudy',
+    'cyclone': 'exceptional',
+    'dust': 'fog',
+    'dusty': 'fog',
+    'fog': 'fog',
+    'frost': 'snowy',
+    'haze': 'fog',
+    'hazy': 'fog',
+    'heavy_shower': 'rainy',
+    'heavy_showers': 'rainy',
+    'light_rain': 'rainy',
+    'light_shower': 'rainy',
+    'light_showers': 'rainy',
+    "mostly_sunny": "sunny",
+    'partly_cloudy': 'partlycloudy',
+    'rain': 'rainy',
+    'shower': 'rainy',
+    'showers': 'rainy',
+    'snow': 'snowy',
+    'storm': 'lightning-rainy',
+    'storms': 'lightning-rainy',
+    'sunny': 'sunny',
+    'tropical_cyclone': 'exceptional',
+    'wind': 'windy',
+    'windy': 'windy',
+    None: None,
+}
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
@@ -51,6 +80,11 @@ class Weather(WeatherEntity):
         return self.collector.observations_data["data"]["temp"]
 
     @property
+    def icon(self):
+        """Return the icon."""
+        return self.collector.daily_forecasts_data["data"][0]["mdi_icon"]
+        
+    @property
     def temperature_unit(self):
         """Return the unit of measurement."""
         return TEMP_CELSIUS
@@ -84,7 +118,7 @@ class Weather(WeatherEntity):
             forecast = {
                 "datetime": self.collector.daily_forecasts_data["data"][day]["date"],
                 "temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
-                "condition": self.collector.daily_forecasts_data["data"][day]["short_text"],
+                "condition": CONDITION_MAP[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
                 "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
                 "precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
                 "precipitation_probability":  self.collector.daily_forecasts_data["data"][day]["rain_chance"],
