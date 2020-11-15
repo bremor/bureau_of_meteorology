@@ -129,8 +129,13 @@ class Collector:
             # When rain amount max is None, set as rain amount min
             if rain["amount"]["max"] is None:
                 flattened["rain_amount_max"] = flattened["rain_amount_min"]
+                flattened["rain_amount_range"] = rain["amount"]["min"]
             else:
                 flattened["rain_amount_max"] = rain["amount"]["max"]
+                flattened["rain_amount_range"] = "{} to {}".format(
+                    rain["amount"]["min"],
+                    rain["amount"]["max"],
+                )
 
             self.daily_forecasts_data["data"][day].update(flattened)
 
