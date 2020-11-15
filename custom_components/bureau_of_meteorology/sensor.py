@@ -143,16 +143,7 @@ class ForecastSensor(SensorBase):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if self.sensor_name == "rain_amount_range":
-            if self.collector.daily_forecasts_data["data"][self.day]["rain_amount_max"] is not None:
-                state = "{} to {}".format(
-                    self.collector.daily_forecasts_data["data"][self.day]["rain_amount_min"],
-                    self.collector.daily_forecasts_data["data"][self.day]["rain_amount_max"]
-                )
-            else:
-                state = self.collector.daily_forecasts_data["data"][self.day]["rain_amount_min"]
-        else:
-            state = self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
+        state = self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
         return (state[:251] + '...') if type(state) == str and len(
                 state) > 251 else state
 
