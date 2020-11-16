@@ -60,7 +60,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         for forecast in collector.daily_forecasts_data["data"][day]:
             if forecast in SENSOR_NAMES:
                 new_devices.append(ForecastSensor(collector, collector.location_name, day, forecast))
-        new_devices.append(ForecastSensor(collector, collector.location_name, day, "rain_amount_range"))
 
     if new_devices:
         async_add_devices(new_devices)
