@@ -1,6 +1,4 @@
 """Platform for sensor integration."""
-import logging
-
 from homeassistant.const import (
     TEMP_CELSIUS,
 )
