@@ -1,6 +1,4 @@
 """Platform for sensor integration."""
-import logging
-
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     DEVICE_CLASS_HUMIDITY,
@@ -12,8 +10,6 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.entity import Entity
 from .const import ATTRIBUTION, DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
 
 SENSOR_NAMES = {
     "temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
