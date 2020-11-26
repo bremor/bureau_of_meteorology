@@ -1,9 +1,19 @@
 """Platform for sensor integration."""
+import logging
+
 from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    DEVICE_CLASS_HUMIDITY,
+    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_TIMESTAMP,
+    LENGTH_MILLIMETERS,
+    PERCENTAGE,
     TEMP_CELSIUS,
 )
 from homeassistant.components.weather import WeatherEntity
 from .const import ATTRIBUTION, DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 CONDITION_MAP = {
     'clear': 'clear-night',

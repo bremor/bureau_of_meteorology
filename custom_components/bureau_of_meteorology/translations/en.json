@@ -10,9 +10,41 @@
         "step": {
             "user": {
                 "title": "Set up Bureau of Meteorology",
+                "description": "Latitude and longitude will be used to find the nearest weather station and to generate a forecast for your location.",
                 "data": {
                     "latitude": "Latitude",
                     "longitude": "Longitude"
+                }
+            },
+            "observations": {
+                "title": "Customise Observation Sensors",
+                "description": "If you do not wish to create any observation sensors, uncheck the box below.",
+                "data": {
+                    "observations_create": "Create observation sensors"
+                }
+            },
+            "observations_monitored": {
+                "title": "Customise Observation Sensors",
+                "description": "You can customise the basename of your observation sensors and which observation sensors you would like to create.",
+                "data": {
+                    "observations_basename": "Basename for all of your observation sensors",
+                    "observations_monitored": "Which sensors would you like to create?"
+                }
+            },
+            "forecasts": {
+                "title": "Customise Forecast Sensors",
+                "description": "If you do not wish to create any forecast sensors, uncheck the box below.",
+                "data": {
+                    "forecasts_create": "Create forecast sensors"
+                }
+            },
+            "forecasts_monitored": {
+                "title": "Customise Forecast Sensors",
+                "description": "You can customise the basename of your forecast sensors, which forecast sensors you would like to create, and how many days you would like the forecast to be (day 5 is always available, day 6 and 7 are only sometimes available).",
+                "data": {
+                    "forecasts_basename": "Choose a 'basename' for your forecast sensors (e.g. sensor.basename_temp_max_0)",
+                    "forecasts_monitored": "Which sensors would you like to create?",
+                    "forecasts_days": "How many forecast days would you like? (0-7)"
                 }
             }
         }
