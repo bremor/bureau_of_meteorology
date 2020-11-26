@@ -1,4 +1,4 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Deafult-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 The `bureau_of_meteorology` sensor platform uses the [Bureau of Meteorology (BOM)](http://www.bom.gov.au) as a source for weather information.
 
@@ -6,8 +6,7 @@ The `bureau_of_meteorology` sensor platform uses the [Bureau of Meteorology (BOM
 
 ### 1. Easy Mode
 
-1. Add this repo as a custom repository within HACS. This is not currently in the default HACS store, you must add it manually.
-2. After adding this as a custom repo, you must also install this integration within HACS. This step will download the required files into your `custom_components` directory.
+We support [HACS](https://hacs.netlify.com/). Go to "Community" -> "Integrations", click "+", search "Bureau of Meteorology" and install.
 
 ### 2. Manual
 
