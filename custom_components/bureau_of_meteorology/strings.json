@@ -3,9 +3,41 @@
     "step": {
       "user": {
         "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
         "data": {
           "latitude": "[%key:common::config_flow::data::latitude%]",
           "longitude": "[%key:common::config_flow::data::longitude%]"
+        }
+      },
+      "observations": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "observations_create": "[%key:common::config_flow::data::observations_create%]"
+        }
+      },
+      "observations_monitored": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "observations_basename": "[%key:common::config_flow::data::observations_basename%]",
+          "observations_monitored": "[%key:common::config_flow::data::observations_basename%]"
+        }
+      },
+      "forecasts": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "forecasts_create": "[%key:common::config_flow::data::forecasts_create%]"
+        }
+      },
+      "forecasts_monitored": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "forecasts_basename": "[%key:common::config_flow::data::forecasts_basename%]",
+          "forecasts_monitored": "[%key:common::config_flow::data::forecasts_basename%]",
+          "forecasts_days": "[%key:common::config_flow::data::forecasts_days%]"
         }
       }
     },

@@ -2,6 +2,7 @@
 import asyncio
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 
 from .PyBoM.collector import Collector
@@ -19,8 +20,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up BOM from a config entry."""
     collector = Collector(
-        entry.data["latitude"],
-        entry.data["longitude"]
+        entry.data[CONF_LATITUDE],
+        entry.data[CONF_LONGITUDE]
     )
 
     await collector.get_location_name()
