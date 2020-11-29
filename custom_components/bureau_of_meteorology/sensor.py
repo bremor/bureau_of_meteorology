@@ -66,9 +66,9 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     if config_entry.data[CONF_FORECASTS_CREATE] == True:
         days = config_entry.data[CONF_FORECASTS_DAYS]
-        for day in range(0, days+1):
+        for day in range(0, days):
             for forecast in config_entry.data[CONF_FORECASTS_MONITORED]:
-                new_devices.append(ForecastSensor(collector, collector.location_name, day, forecast))
+                new_devices.append(ForecastSensor(collector, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
 
     if new_devices:
         async_add_devices(new_devices)
