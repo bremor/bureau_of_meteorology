@@ -129,4 +129,9 @@ class Weather(WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        return self.collector.daily_forecasts_data["data"][0]["short_text"]
+        short_text = self.collector.daily_forecasts_data["data"][0]["short_text"]
+        extended_text = self.collector.daily_forecasts_data["data"][0]["extended_text"]
+        if short_text is None:
+            return extended_text[:extended_text.find('.')]
+        else:
+            return short_text
