@@ -10,6 +10,7 @@ from homeassistant.const import (
     PERCENTAGE,
     TEMP_CELSIUS,
 )
+from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from .const import (ATTRIBUTION,
                     CONF_FORECASTS_BASENAME,
@@ -20,6 +21,8 @@ from .const import (ATTRIBUTION,
                     CONF_OBSERVATIONS_CREATE,
                     CONF_OBSERVATIONS_MONITORED,
                     DOMAIN,
+                    COLLECTOR,
+                    COORDINATOR,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +57,8 @@ SENSOR_NAMES = {
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
-    collector = hass.data[DOMAIN][config_entry.entry_id]
+    hass_data = hass.data[DOMAIN][config_entry.entry_id]
+    collector = hass_data[COLLECTOR]
 
     forecast_region = collector.daily_forecasts_data["metadata"]["forecast_region"]
     new_devices = []
@@ -62,13 +66,13 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     if config_entry.data[CONF_OBSERVATIONS_CREATE] == True:
        for observation in collector.observations_data["data"]:
            if observation in SENSOR_NAMES and observation in config_entry.data[CONF_OBSERVATIONS_MONITORED]:
-               new_devices.append(ObservationSensor(collector, config_entry.data[CONF_OBSERVATIONS_BASENAME], observation))
+               new_devices.append(ObservationSensor(hass_data, config_entry.data[CONF_OBSERVATIONS_BASENAME], observation))
 
     if config_entry.data[CONF_FORECASTS_CREATE] == True:
         days = config_entry.data[CONF_FORECASTS_DAYS]
         for day in range(0, days+1):
             for forecast in config_entry.data[CONF_FORECASTS_MONITORED]:
-                new_devices.append(ForecastSensor(collector, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
+                new_devices.append(ForecastSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
 
     if new_devices:
         async_add_devices(new_devices)
@@ -77,12 +81,32 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class SensorBase(Entity):
     """Base representation of a BOM Sensor."""
 
-    def __init__(self, collector, location_name, sensor_name):
+    def __init__(self, hass_data, location_name, sensor_name):
         """Initialize the sensor."""
-        self.collector = collector
+        self.collector = hass_data[COLLECTOR]
+        self.coordinator = hass_data[COORDINATOR]
         self.location_name = location_name
         self.sensor_name = sensor_name
         self.current_state = None
+
+    async def async_added_to_hass(self) -> None:
+        """Set up a listener and load data."""
+        self.async_on_remove(
+            self.coordinator.async_add_listener(self._update_callback)
+        )
+        self.async_on_remove(
+            self.coordinator.async_add_listener(self._update_callback)
+        )
+        self._update_callback()
+
+    @callback
+    def _update_callback(self) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def should_poll(self) -> bool:
+        """Entities do not individually poll."""
+        return False
 
     @property
     def device_class(self):
@@ -101,9 +125,9 @@ class SensorBase(Entity):
 class ObservationSensor(SensorBase):
     """Representation of a BOM Observation Sensor."""
 
-    def __init__(self, collector, location_name, sensor_name):
+    def __init__(self, hass_data, location_name, sensor_name):
         """Initialize the sensor."""
-        super().__init__(collector, location_name, sensor_name)
+        super().__init__(hass_data, location_name, sensor_name)
 
     @property
     def unique_id(self):
@@ -137,10 +161,10 @@ class ObservationSensor(SensorBase):
 class ForecastSensor(SensorBase):
     """Representation of a BOM Forecast Sensor."""
 
-    def __init__(self, collector, location_name, day, sensor_name):
+    def __init__(self, hass_data, location_name, day, sensor_name):
         """Initialize the sensor."""
         self.day = day
-        super().__init__(collector, location_name, sensor_name)
+        super().__init__(hass_data, location_name, sensor_name)
 
     @property
     def unique_id(self):
