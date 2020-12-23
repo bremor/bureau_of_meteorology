@@ -107,7 +107,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                      "wind_speed_knot": "Wind Speed Knot",
                      "wind_direction": "Wind Direction",
                      "gust_speed_kilometre": "Gust Speed Kilometre",
-                     "gust_speed_knot": "Gust Speed Know",
+                     "gust_speed_knot": "Gust Speed Knot",
         }
 
         data_schema = vol.Schema({
