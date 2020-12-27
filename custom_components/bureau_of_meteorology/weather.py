@@ -151,7 +151,6 @@ class Weather(WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        #return self.collector.daily_forecasts_data["data"][0]["short_text"]
         return CONDITION_MAP[self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]]
 
     async def async_update(self):
