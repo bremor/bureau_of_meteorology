@@ -57,7 +57,12 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     new_devices = []
 
-    new_devices.append(Weather(hass_data, config_entry.data[CONF_FORECASTS_BASENAME]))
+    if CONF_FORECASTS_BASENAME in config_entry.data:
+        location_name = config_entry.data[CONF_FORECASTS_BASENAME]
+    else:
+        location_name = hass_data[COLLECTOR].location_name
+
+    new_devices.append(Weather(hass_data, location_name))
 
     if new_devices:
         async_add_devices(new_devices)
