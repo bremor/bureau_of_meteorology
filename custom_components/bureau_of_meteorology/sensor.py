@@ -182,13 +182,15 @@ class ForecastSensor(SensorBase):
     def state(self):
         """Return the state of the sensor."""
         if self.day < len(self.collector.daily_forecasts_data["data"]):
+
             new_state = self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
-            if new_state is None:
-                return self.current_state
+            if type(new_state) == str and len(new_state) > 251:
+                    self.current_state = new_state[:251] + '...'
             else:
                 self.current_state = new_state
-                return (new_state[:251] + '...') if type(new_state) == str and len(
-                        new_state) > 251 else new_state
+
+            return self.current_state
+
         else:
             return None
 
