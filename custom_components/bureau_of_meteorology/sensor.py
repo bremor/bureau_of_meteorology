@@ -177,12 +177,17 @@ class ForecastSensor(SensorBase):
         """Return the state attributes of the sensor."""
         attr = self.collector.daily_forecasts_data["metadata"]
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
-        attr[ATTR_DATE] = self.collector.daily_forecasts_data["data"][self.day]["date"]
+
+        # If there is no data for this day, do not add attributes for this day.
+        if self.day < len(self.collector.daily_forecasts_data["data"]):
+            attr[ATTR_DATE] = self.collector.daily_forecasts_data["data"][self.day]["date"]
+
         return attr
 
     @property
     def state(self):
         """Return the state of the sensor."""
+        # If there is no data for this day, return state as 'None'.
         if self.day < len(self.collector.daily_forecasts_data["data"]):
 
             new_state = self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
