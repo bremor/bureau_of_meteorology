@@ -41,6 +41,15 @@ After a correct installation, your configuration directory should look like the 
 3. Search for `Bureau of Meteorology`. (If you don't see it, try refreshing your browser page to reload the cache.)
 4. Enter the required information. (Latitude/Longitude)
 
+# Troubleshooting
+Please set your logging for the custom_component to debug:
+```yaml
+logger:
+  default: warn
+  logs:
+    custom_components.bonaire_myclimate: debug
+```
+
 # Notes
 1. This integration will refresh data no faster than every 10 minutes.
 
