@@ -47,7 +47,7 @@ Please set your logging for the custom_component to debug:
 logger:
   default: warn
   logs:
-    custom_components.bonaire_myclimate: debug
+    custom_components.bureau_of_meteorology: debug
 ```
 
 # Notes
