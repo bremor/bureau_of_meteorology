@@ -9,5 +9,6 @@
   "zeroconf": [],
   "homekit": {},
   "dependencies": [],
+  "version": "0.10.3",
   "codeowners": ["@bremor"]
 }
