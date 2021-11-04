@@ -51,8 +51,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.data = user_input
 
                 # Populate observations and daily forecasts data
-                await self.collector.get_observations_data()
-                await self.collector.get_daily_forecasts_data()
+                await self.collector.async_get_observations_data()
+                await self.collector.async_get_daily_forecasts_data()
+                await self.collector.async_get_hourly_forecasts_data()
 
                 # Move onto the next step of the config flow
                 return await self.async_step_observations()
