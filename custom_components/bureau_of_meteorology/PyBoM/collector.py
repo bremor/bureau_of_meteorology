@@ -89,11 +89,16 @@ class Collector:
         """Flatten out wind and gust data."""
         flattened = {}
 
-        wind = self.observations_data["data"]["wind"]
-        flattened["wind_speed_kilometre"] = wind["speed_kilometre"]
-        flattened["wind_speed_knot"] = wind["speed_knot"]
-        flattened["wind_direction"] = wind["direction"]
-
+        if self.observations_data["data"]["wind"] is not None:
+            wind = self.observations_data["data"]["wind"]
+            flattened["wind_speed_kilometre"] = wind["speed_kilometre"]
+            flattened["wind_speed_knot"] = wind["speed_knot"]
+            flattened["wind_direction"] = wind["direction"]
+        else:
+            flattened["wind_speed_kilometre"] = None
+            flattened["wind_speed_knot"] = None
+            flattened["wind_direction"] = None
+            
         if self.observations_data["data"]["gust"] is not None:
             gust = self.observations_data["data"]["gust"]
             flattened["gust_speed_kilometre"] = gust["speed_kilometre"]
