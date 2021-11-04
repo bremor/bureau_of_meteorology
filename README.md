@@ -1,47 +1,26 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Deafult-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+# Bureau of Meteorology Custom Component
 
-The `bureau_of_meteorology` sensor platform uses the [Bureau of Meteorology (BOM)](http://www.bom.gov.au) as a source for weather information.
+This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http://www.bom.gov.au) as a source for weather information. This grabs data from an undocumented API that is used to provide data to https://weather.bom.gov.au/
 
-# Installation (There are two methods, with HACS or manual)
+## 1.0.0 - Hourly Forecast Weather Entity and Bug Fixes
+- Released a weather entity with hourly forecast.
+- Hopefully fixed that bug that occured when BoM had missing data.
+- Refactored code to be a bit cleaner.
 
-### 1. Easy Mode
+## Installation (There are two methods, with HACS or manual)
 
-We support [HACS](https://hacs.netlify.com/). Go to "Community" -> "Integrations", click "+", search "Bureau of Meteorology" and install.
+[![hacs][hacsbadge]][hacs]
 
-### 2. Manual
+Install via HACS (default store) or install manually by copying the files in a new 'custom_components/bonaire_myclimate' directory.
 
-Install it as you would do with any homeassistant custom component:
-
-1. Download `custom_components` folder.
-2. Copy the `bureau_of_meteorology` directory within the `custom_components` directory of your homeassistant installation.
-The `custom_components` directory resides within your homeassistant configuration directory.
-**Note**: if the custom_components directory does not exist, you need to create it.
-After a correct installation, your configuration directory should look like the following.
-
-    ```
-    └── ...
-    └── configuration.yaml
-    └── custom_components
-        └── bureau_of_meteorology
-            └── __init__.py
-            └── config_flow.py
-            └── const.py
-            └── manifest.json
-            └── sensor.py
-            └── strings.json
-            └── PyBoM
-                └── collector.py
-            └── translations
-                └── en.json
-    ```
-
-# Configuration
+## Configuration
+After you have installed the custom component (see above):
 1. Goto the `Configuration` -> `Integrations` page.  
-2. On the bottom right of the page, click on the `+` sign to add an integration.
+2. On the bottom right of the page, click on the `+ Add Integration` sign to add an integration.
 3. Search for `Bureau of Meteorology`. (If you don't see it, try refreshing your browser page to reload the cache.)
-4. Enter the required information. (Latitude/Longitude)
+4. Click `Submit` so add the integration.
 
-# Troubleshooting
+## Troubleshooting
 Please set your logging for the custom_component to debug:
 ```yaml
 logger:
@@ -50,9 +29,11 @@ logger:
     custom_components.bureau_of_meteorology: debug
 ```
 
-# Notes
+## Notes
 1. This integration will refresh data no faster than every 10 minutes.
-
 2. All feature requests, issues and questions are welcome.
 
 <a href="https://www.buymeacoffee.com/bremor" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height=40px width=144px></a>
+
+[hacs]: https://hacs.xyz
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge
