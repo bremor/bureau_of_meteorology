@@ -2,59 +2,19 @@
 import logging
 
 from homeassistant.const import (
-    ATTR_ATTRIBUTION,
-    ATTR_DATE,
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_TIMESTAMP,
-    LENGTH_MILLIMETERS,
-    PERCENTAGE,
-    TEMP_CELSIUS,
+    ATTR_ATTRIBUTION, ATTR_DATE,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
-from .const import (ATTRIBUTION,
-                    COLLECTOR,
-                    CONF_FORECASTS_BASENAME,
-                    CONF_FORECASTS_CREATE,
-                    CONF_FORECASTS_DAYS,
-                    CONF_FORECASTS_MONITORED,
-                    CONF_OBSERVATIONS_BASENAME,
-                    CONF_OBSERVATIONS_CREATE,
-                    CONF_OBSERVATIONS_MONITORED,
-                    COORDINATOR,
-                    DOMAIN,
+
+from .const import (
+    ATTRIBUTION, COLLECTOR, CONF_FORECASTS_BASENAME, CONF_FORECASTS_CREATE,
+    CONF_FORECASTS_DAYS, CONF_FORECASTS_MONITORED, CONF_OBSERVATIONS_BASENAME,
+    CONF_OBSERVATIONS_CREATE, CONF_OBSERVATIONS_MONITORED, COORDINATOR, DOMAIN,
+    SENSOR_NAMES,
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-SENSOR_NAMES = {
-    "temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "temp_feels_like": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "rain_since_9am": [LENGTH_MILLIMETERS, None],
-    "humidity": [PERCENTAGE, DEVICE_CLASS_HUMIDITY],
-    "wind_speed_kilometre": ["km/h", None],
-    "wind_speed_knot": ["kts", None],
-    "wind_direction": [None, None],
-    "gust_speed_kilometre": ["km/h", None],
-    "gust_speed_knot": ["kts", None],
-    "temp_max": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "temp_min": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "extended_text": [None, None],
-    "icon_descriptor": [None, None],
-    "mdi_icon": [None, None],
-    "short_text": [None, None],
-    "uv_category": [None, None],
-    "uv_max_index": ["UV", None],
-    "uv_start_time": ["UV", DEVICE_CLASS_TIMESTAMP],
-    "uv_end_time": ["UV", DEVICE_CLASS_TIMESTAMP],
-    "rain_amount_min": [LENGTH_MILLIMETERS, None],
-    "rain_amount_max": [LENGTH_MILLIMETERS, None],
-    "rain_amount_range": [LENGTH_MILLIMETERS, None],
-    "rain_chance": [PERCENTAGE, None],
-    "fire_danger": [None, None],
-}
-
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
@@ -65,9 +25,8 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     new_devices = []
 
     if config_entry.data[CONF_OBSERVATIONS_CREATE] == True:
-       for observation in collector.observations_data["data"]:
-           if observation in SENSOR_NAMES and observation in config_entry.data[CONF_OBSERVATIONS_MONITORED]:
-               new_devices.append(ObservationSensor(hass_data, config_entry.data[CONF_OBSERVATIONS_BASENAME], observation))
+        for observation in config_entry.data[CONF_OBSERVATIONS_MONITORED]:
+            new_devices.append(ObservationSensor(hass_data, config_entry.data[CONF_OBSERVATIONS_BASENAME], observation))
 
     if config_entry.data[CONF_FORECASTS_CREATE] == True:
         days = config_entry.data[CONF_FORECASTS_DAYS]
@@ -146,12 +105,9 @@ class ObservationSensor(SensorBase):
     @property
     def state(self):
         """Return the state of the sensor."""
-        new_state = self.collector.observations_data["data"][self.sensor_name]
-        if new_state is None:
-            return self.current_state
-        else:
-            self.current_state = new_state
-            return self.current_state
+        if self.sensor_name in self.collector.observations_data["data"] and self.collector.observations_data["data"][self.sensor_name] is not None:
+            self.current_state = self.collector.observations_data["data"][self.sensor_name]
+        return self.current_state
 
     @property
     def name(self):

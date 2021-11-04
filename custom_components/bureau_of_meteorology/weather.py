@@ -1,55 +1,16 @@
 """Platform for sensor integration."""
 import logging
 
-from homeassistant.const import (
-    ATTR_ATTRIBUTION,
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_TIMESTAMP,
-    LENGTH_MILLIMETERS,
-    PERCENTAGE,
-    TEMP_CELSIUS,
-)
 from homeassistant.components.weather import WeatherEntity
+from homeassistant.const import TEMP_CELSIUS
 from homeassistant.core import callback
-from .const import (ATTRIBUTION,
-                    COLLECTOR,
-                    CONF_FORECASTS_BASENAME,
-                    COORDINATOR,
-                    DOMAIN,
+
+from .const import (
+    ATTRIBUTION, COLLECTOR, CONF_FORECASTS_BASENAME, COORDINATOR, DOMAIN,
+    MAP_CONDITION,
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-CONDITION_MAP = {
-    'clear': 'clear-night',
-    'cloudy': 'cloudy',
-    'cyclone': 'exceptional',
-    'dust': 'fog',
-    'dusty': 'fog',
-    'fog': 'fog',
-    'frost': 'snowy',
-    'haze': 'fog',
-    'hazy': 'fog',
-    'heavy_shower': 'rainy',
-    'heavy_showers': 'rainy',
-    'light_rain': 'rainy',
-    'light_shower': 'rainy',
-    'light_showers': 'rainy',
-    "mostly_sunny": "sunny",
-    'partly_cloudy': 'partlycloudy',
-    'rain': 'rainy',
-    'shower': 'rainy',
-    'showers': 'rainy',
-    'snow': 'snowy',
-    'storm': 'lightning-rainy',
-    'storms': 'lightning-rainy',
-    'sunny': 'sunny',
-    'tropical_cyclone': 'exceptional',
-    'wind': 'windy',
-    'windy': 'windy',
-    None: None,
-}
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
@@ -62,14 +23,15 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     else:
         location_name = hass_data[COLLECTOR].location_name
 
-    new_devices.append(Weather(hass_data, location_name))
+    new_devices.append(WeatherDaily(hass_data, location_name))
+    new_devices.append(WeatherHourly(hass_data, location_name))
 
     if new_devices:
         async_add_devices(new_devices)
 
 
-class Weather(WeatherEntity):
-    """Representation of a BOM weather entity."""
+class WeatherBase(WeatherEntity):
+    """Base representation of a BOM weather entity."""
 
     def __init__(self, hass_data, location_name):
         """Initialize the sensor."""
@@ -96,16 +58,6 @@ class Weather(WeatherEntity):
     def should_poll(self) -> bool:
         """Entities do not individually poll."""
         return False
-
-    @property
-    def name(self):
-        """Return the name."""
-        return self.location_name
-
-    @property
-    def unique_id(self):
-        """Return Unique ID string."""
-        return self.location_name
 
     @property
     def temperature(self):
@@ -143,6 +95,31 @@ class Weather(WeatherEntity):
         return ATTRIBUTION
 
     @property
+    def condition(self):
+        """Return the current condition."""
+        return MAP_CONDITION[self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]]
+
+    async def async_update(self):
+        await self.coordinator.async_update()
+
+class WeatherDaily(WeatherBase):
+    """Representation of a BOM weather entity."""
+
+    def __init__(self, hass_data, location_name):
+        """Initialize the sensor."""
+        super().__init__(hass_data, location_name)
+
+    @property
+    def name(self):
+        """Return the name."""
+        return self.location_name
+
+    @property
+    def unique_id(self):
+        """Return Unique ID string."""
+        return self.location_name
+
+    @property
     def forecast(self):
         """Return the forecast."""
         forecasts = []
@@ -151,7 +128,7 @@ class Weather(WeatherEntity):
             forecast = {
                 "datetime": self.collector.daily_forecasts_data["data"][day]["date"],
                 "temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
-                "condition": CONDITION_MAP[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
+                "condition": MAP_CONDITION[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
                 "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
                 "precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
                 "precipitation_probability":  self.collector.daily_forecasts_data["data"][day]["rain_chance"],
@@ -159,10 +136,38 @@ class Weather(WeatherEntity):
             forecasts.append(forecast)
         return forecasts
 
-    @property
-    def condition(self):
-        """Return the current condition."""
-        return CONDITION_MAP[self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]]
 
-    async def async_update(self):
-        await self.coordinator.async_update()
+class WeatherHourly(WeatherBase):
+    """Representation of a BOM hourly weather entity."""
+
+    def __init__(self, hass_data, location_name):
+        """Initialize the sensor."""
+        super().__init__(hass_data, location_name)
+
+    @property
+    def name(self):
+        """Return the name."""
+        return self.location_name + " Hourly"
+
+    @property
+    def unique_id(self):
+        """Return Unique ID string."""
+        return self.location_name + "_hourly"
+
+    @property
+    def forecast(self):
+        """Return the forecast."""
+        forecasts = []
+        hours = len(self.collector.hourly_forecasts_data["data"])
+        for hour in range(0, hours):
+            forecast = {
+                "datetime": self.collector.hourly_forecasts_data["data"][hour]["time"],
+                "temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
+                "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
+                "precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
+                "precipitation_probability":  self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
+                "wind_bearing":  self.collector.hourly_forecasts_data["data"][hour]["wind_direction"],
+                "wind_speed":  self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
+            }
+            forecasts.append(forecast)
+        return forecasts
