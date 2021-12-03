@@ -38,9 +38,8 @@ MAP_UV = {
     None: None,
 }
 
-URL_BASE = "https://api.weather.bom.gov.au"
-URL_DAILY_FORECASTS = "/v1/locations/{}/forecasts/daily"
-URL_HOURLY_FORECASTS = "/v1/locations/{}/forecasts/hourly"
-URL_LOCATIONS = "/v1/locations/{}"
-URL_OBSERVATIONS = "https://api.weather.bom.gov.au/v1/locations/{}/observations"
+URL_BASE = "https://api.weather.bom.gov.au/v1/locations/"
+URL_DAILY = "/forecasts/daily"
+URL_HOURLY = "/forecasts/hourly"
+URL_OBSERVATIONS = "/observations"
 
