@@ -32,12 +32,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_LONGITUDE]
     )
 
-    await collector.get_location_name()
+    await collector.async_update()
 
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name=f"BOM observation {collector.location_name}",
+        name=f"BOM observation {collector.locations_data['data']['name']}",
         update_method=collector.async_update,
         update_interval=DEFAULT_SCAN_INTERVAL,
         request_refresh_debouncer=debounce.Debouncer(
@@ -71,6 +71,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
             ]
         )
     )
+
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
 
