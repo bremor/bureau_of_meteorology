@@ -95,7 +95,7 @@ class ObservationSensor(SensorBase):
         return f"{self.location_name}_{self.sensor_name}"
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
         attr = self.collector.observations_data["metadata"]
         attr.update(self.collector.observations_data["data"]["station"])
@@ -129,7 +129,7 @@ class ForecastSensor(SensorBase):
         return f"{self.location_name}_{self.day}_{self.sensor_name}"
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
         attr = self.collector.daily_forecasts_data["metadata"]
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
