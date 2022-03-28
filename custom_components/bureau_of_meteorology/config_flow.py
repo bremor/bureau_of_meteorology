@@ -169,6 +169,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                      "rain_amount_range": "Rain Amount Range",
                      "rain_chance": "Rain Chance",
                      "fire_danger": "Fire Danger",
+                     "now_now_label": "Now Now Label",
+                     "now_temp_now": "Now Temp Now",
+                     "now_later_label": "Now Later Label",
+                     "now_temp_later": "Now Temp Later",
         }
 
         data_schema = vol.Schema({
