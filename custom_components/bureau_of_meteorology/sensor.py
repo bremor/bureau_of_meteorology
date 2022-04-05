@@ -32,7 +32,11 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         days = config_entry.data[CONF_FORECASTS_DAYS]
         for day in range(0, days+1):
             for forecast in config_entry.data[CONF_FORECASTS_MONITORED]:
-                new_devices.append(ForecastSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
+                if forecast in ["now_now_label", "now_temp_now", "now_later_label", "now_temp_later"]:
+                    if day == 0:
+                        new_devices.append(NowLaterSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], forecast))
+                else:
+                    new_devices.append(ForecastSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
 
     if new_devices:
         async_add_devices(new_devices)
@@ -161,3 +165,34 @@ class ForecastSensor(SensorBase):
     def name(self):
         """Return the name of the sensor."""
         return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()} {self.day}"
+
+
+class NowLaterSensor(SensorBase):
+    """Representation of a BOM Forecast Sensor."""
+
+    def __init__(self, hass_data, location_name, sensor_name):
+        """Initialize the sensor."""
+        super().__init__(hass_data, location_name, sensor_name)
+
+    @property
+    def unique_id(self):
+        """Return Unique ID string."""
+        return f"{self.location_name}_{self.sensor_name}"
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the sensor."""
+        attr = self.collector.daily_forecasts_data["metadata"]
+        attr[ATTR_ATTRIBUTION] = ATTRIBUTION
+        return attr
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        self.current_state = self.collector.daily_forecasts_data["data"][0][self.sensor_name]
+        return self.current_state
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()}"

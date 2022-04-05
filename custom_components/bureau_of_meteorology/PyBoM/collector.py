@@ -49,6 +49,9 @@ class Collector:
             flatten_dict(["amount"], d["rain"])
             flatten_dict(["rain", "uv"], d)
 
+            if day == 0:
+                flatten_dict(["now"], d)
+
             # If rain amount max is None, set as rain amount min
             if d["rain_amount_max"] is None:
                 d["rain_amount_max"] = d["rain_amount_min"]

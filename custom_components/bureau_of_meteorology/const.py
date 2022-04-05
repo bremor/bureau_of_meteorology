@@ -74,4 +74,8 @@ SENSOR_NAMES = {
     "rain_amount_range": [LENGTH_MILLIMETERS, None],
     "rain_chance": [PERCENTAGE, None],
     "fire_danger": [None, None],
+    "now_now_label":  [None, None],
+    "now_temp_now":  [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "now_later_label":  [None, None],
+    "now_temp_later":  [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
 }
