@@ -33,7 +33,5 @@ logger:
 1. This integration will refresh data no faster than every 10 minutes.
 2. All feature requests, issues and questions are welcome.
 
-<a href="https://www.buymeacoffee.com/bremor" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height=40px width=144px></a>
-
 [hacs]: https://hacs.xyz
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge
