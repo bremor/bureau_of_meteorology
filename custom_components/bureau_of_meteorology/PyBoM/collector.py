@@ -90,7 +90,17 @@ class Collector:
 
             async with session.get(URL_BASE + self.geohash + URL_OBSERVATIONS) as resp:
                 self.observations_data = await resp.json()
-                flatten_dict(["wind", "gust"], self.observations_data["data"])
+                if self.observations_data["data"]["wind"] is not None:
+                    flatten_dict(["wind"], self.observations_data["data"])
+                else:
+                    self.observations_data["data"]["wind_direction"] = "unavailable"
+                    self.observations_data["data"]["wind_speed_kilometre"] = "unavailable"
+                    self.observations_data["data"]["wind_speed_knot"] = "unavailable"
+                if self.observations_data["data"]["gust"] is not None:
+                    flatten_dict(["gust"], self.observations_data["data"])
+                else:
+                    self.observations_data["data"]["gust_speed_kilometre"] = "unavailable"
+                    self.observations_data["data"]["gust_speed_knot"] = "unavailable"
                 _LOGGER.debug(f"Observations data: {self.observations_data}")
 
             async with session.get(URL_BASE + self.geohash + URL_DAILY) as resp:
