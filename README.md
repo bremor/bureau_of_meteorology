@@ -7,6 +7,9 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+## 1.1.2 - Add Sunrise/Sunset sensors
+- Added sunrise and sunset sensors in the forecast that provide the sunrise/sunset times for the selected forecast period.
+
 ## 1.1.1 - Add Now/Later sensors
 - Added now and later sensors in the forecast that provide the next 2 min/max elements.
 - Fix sensors disappearing when data is not available from the BoM.
