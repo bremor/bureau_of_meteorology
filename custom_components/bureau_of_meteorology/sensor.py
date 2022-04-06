@@ -109,7 +109,7 @@ class ObservationSensor(SensorBase):
     @property
     def state(self):
         """Return the state of the sensor."""
-         if self.sensor_name in self.collector.observations_data["data"]:
+        if self.sensor_name in self.collector.observations_data["data"]:
             if self.collector.observations_data["data"][self.sensor_name] is not None:
                 self.current_state = self.collector.observations_data["data"][self.sensor_name]
             else:
