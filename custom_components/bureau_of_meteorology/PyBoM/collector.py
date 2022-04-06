@@ -47,7 +47,7 @@ class Collector:
             d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
 
             flatten_dict(["amount"], d["rain"])
-            flatten_dict(["rain", "uv"], d)
+            flatten_dict(["rain", "uv", "astronomical"], d)
 
             if day == 0:
                 flatten_dict(["now"], d)
