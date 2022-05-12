@@ -139,7 +139,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if self.data[CONF_FORECASTS_CREATE]:
                     return await self.async_step_forecasts_monitored()
                 else:
-                    return self.async_create_entry(title=self.collector.locations_data["data"]["name"], data=self.data)
+                   self.data[CONF_FORECASTS_BASENAME] = self.collector.locations_data["data"]["name"]
+                   return self.async_create_entry(title=self.collector.locations_data["data"]["name"], data=self.data)
 
             except CannotConnect:
                 errors["base"] = "cannot_connect"
