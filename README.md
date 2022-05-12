@@ -7,6 +7,10 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+## 1.1.5 - Fix unit of measurement for wind speed
+- The wind speed in the weather object had the wrong value as the unit of measurment was not being set.
+## 1.1.4 - Fix weather object not being created
+- When the forecast configuration box was unticked the weather object was failing to be created.
 ## 1.1.2 - Add Sunrise/Sunset sensors
 - Added sunrise and sunset sensors in the forecast that provide the sunrise/sunset times for the selected forecast period.
 
