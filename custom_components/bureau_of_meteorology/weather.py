@@ -2,7 +2,9 @@
 import logging
 
 from homeassistant.components.weather import WeatherEntity
-from homeassistant.const import TEMP_CELSIUS
+from homeassistant.const import (
+    TEMP_CELSIUS, SPEED_KILOMETERS_PER_HOUR,
+)
 from homeassistant.core import callback
 
 from .const import (
@@ -83,6 +85,11 @@ class WeatherBase(WeatherEntity):
     def wind_speed(self):
         """Return the wind speed."""
         return self.collector.observations_data["data"]["wind_speed_kilometre"]
+
+    @property
+    def wind_speed_unit(self):
+        """Return the unit of measurement for wind speed."""
+        return SPEED_KILOMETERS_PER_HOUR
 
     @property
     def wind_bearing(self):
