@@ -16,6 +16,13 @@
                     "longitude": "Longitude"
                 }
             },
+            "weather_name": {
+                "title": "Choose Weather Entity Name",
+                "description": "You can choose the name of your BoM weather entity in homeassistant (eg. Warrnambool for \"weather.warrnambool\" or home for \"weather.home\"). The default is taken from your latitude and longitude.",
+                "data": {
+                    "weather_name": "Name of weather entity (weather.name)"
+                }
+            },
             "observations": {
                 "title": "Customise Observation Sensors",
                 "description": "If you do not wish to create any observation sensors, uncheck the box below.",
