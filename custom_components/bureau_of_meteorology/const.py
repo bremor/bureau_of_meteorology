@@ -8,6 +8,7 @@ from homeassistant.const import (
 ATTRIBUTION = "Data provided by the Australian Bureau of Meteorology"
 COLLECTOR = "collector"
 
+CONF_WEATHER_NAME = "weather_name"
 CONF_FORECASTS_BASENAME = "forecasts_basename"
 CONF_FORECASTS_CREATE = "forecasts_create"
 CONF_FORECASTS_DAYS = "forecasts_days"

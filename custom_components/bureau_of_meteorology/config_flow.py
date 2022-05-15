@@ -7,7 +7,8 @@ from homeassistant import config_entries, core, exceptions
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 import homeassistant.helpers.config_validation as cv
 
-from .const import (CONF_FORECASTS_BASENAME,
+from .const import (CONF_WEATHER_NAME,
+                    CONF_FORECASTS_BASENAME,
                     CONF_FORECASTS_CREATE,
                     CONF_FORECASTS_DAYS,
                     CONF_FORECASTS_MONITORED,
@@ -49,7 +50,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.collector.async_update()
 
                 # Move onto the next step of the config flow
-                return await self.async_step_observations()
+                return await self.async_step_weather_name()
 
             except Exception:
                 _LOGGER.exception("Unexpected exception")
@@ -58,6 +59,31 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
         return self.async_show_form(
             step_id="user", data_schema=data_schema, errors=errors
+        )
+
+    async def async_step_weather_name(self, user_input=None):
+        """Handle the locations step."""
+        data_schema = vol.Schema({
+            vol.Required(CONF_WEATHER_NAME, default=self.collector.locations_data["data"]["name"]): str,
+        })
+
+        errors = {}
+        if user_input is not None:
+            try:
+                # Save the user input into self.data so it's retained
+                self.data.update(user_input)
+
+                return await self.async_step_observations()
+
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+
+        # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
+        return self.async_show_form(
+            step_id="weather_name", data_schema=data_schema, errors=errors
         )
 
     async def async_step_observations(self, user_input=None):

@@ -9,6 +9,13 @@
           "longitude": "[%key:common::config_flow::data::longitude%]"
         }
       },
+      "weather_name": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "weather_name": "[%key:common::config_flow::data::weather_name%]"
+        }
+      },
       "observations": {
         "title": "[%key:common::config_flow::title%]",
         "description": "[%key:common::config_flow::description%]",
@@ -21,7 +28,7 @@
         "description": "[%key:common::config_flow::description%]",
         "data": {
           "observations_basename": "[%key:common::config_flow::data::observations_basename%]",
-          "observations_monitored": "[%key:common::config_flow::data::observations_basename%]"
+          "observations_monitored": "[%key:common::config_flow::data::observations_monitored%]"
         }
       },
       "forecasts": {
@@ -36,7 +43,7 @@
         "description": "[%key:common::config_flow::description%]",
         "data": {
           "forecasts_basename": "[%key:common::config_flow::data::forecasts_basename%]",
-          "forecasts_monitored": "[%key:common::config_flow::data::forecasts_basename%]",
+          "forecasts_monitored": "[%key:common::config_flow::data::forecasts_monitored%]",
           "forecasts_days": "[%key:common::config_flow::data::forecasts_days%]"
         }
       }
