@@ -7,7 +7,8 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
-## 1.1.6 - Add step to config to allow setting the name of the weather entities.
+## 1.1.6 - Allow setting the name of weather entities.
+- Add the ability to name the weather entities when forecast is not checked during config.
 
 ## 1.1.5 - Fix unit of measurement for wind speed
 - The wind speed in the weather object had the wrong value as the unit of measurment was not being set.
