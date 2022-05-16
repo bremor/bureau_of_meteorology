@@ -8,6 +8,9 @@ from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import debounce
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.exceptions import ConfigEntryNotReady
+
+from aiohttp.client_exceptions import ClientConnectorError
 
 from .PyBoM.collector import Collector
 from .const import (CONF_WEATHER_NAME,
@@ -51,12 +54,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data[CONF_LONGITUDE]
     )
 
-    await collector.async_update()
+    try:
+        await collector.async_update()
+    except ClientConnectorError as ex:
+        raise ConfigEntryNotReady from ex
 
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name=f"BOM observation {collector.locations_data['data']['name']}",
+        name=f"BOM observation {entry.data[CONF_WEATHER_NAME]}",
         update_method=collector.async_update,
         update_interval=DEFAULT_SCAN_INTERVAL,
         request_refresh_debouncer=debounce.Debouncer(
