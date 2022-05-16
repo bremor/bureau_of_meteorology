@@ -41,8 +41,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             hass.config_entries.async_update_entry(config_entry, data=new)
 
         _LOGGER.info("Migration to version %s successful", config_entry.version)
-
-    return True
+        return True
+      
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         data_schema = vol.Schema({
