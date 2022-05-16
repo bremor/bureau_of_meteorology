@@ -10,8 +10,8 @@ from homeassistant.helpers.entity import Entity
 from .const import (
     ATTRIBUTION, COLLECTOR, CONF_FORECASTS_BASENAME, CONF_FORECASTS_CREATE,
     CONF_FORECASTS_DAYS, CONF_FORECASTS_MONITORED, CONF_OBSERVATIONS_BASENAME,
-    CONF_OBSERVATIONS_CREATE, CONF_OBSERVATIONS_MONITORED, COORDINATOR, DOMAIN,
-    SENSOR_NAMES,
+    CONF_OBSERVATIONS_CREATE, CONF_OBSERVATIONS_MONITORED, CONF_WARNINGS_CREATE,
+    COORDINATOR, DOMAIN, SENSOR_NAMES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,6 +37,9 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
                         new_devices.append(NowLaterSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], forecast))
                 else:
                     new_devices.append(ForecastSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
+
+    if config_entry.data.get(CONF_WARNINGS_CREATE, True) == True:
+        new_devices.append(WarningsSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], "warnings"))
 
     if new_devices:
         async_add_devices(new_devices)
@@ -168,6 +171,38 @@ class ForecastSensor(SensorBase):
     def name(self):
         """Return the name of the sensor."""
         return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()} {self.day}"
+
+
+class WarningsSensor(SensorBase):
+    """Representation of a BOM Warnings Sensor."""
+
+    def __init__(self, hass_data, location_name, sensor_name):
+        """Initialize the sensor."""
+        super().__init__(hass_data, location_name, sensor_name)
+
+    @property
+    def unique_id(self):
+        """Return Unique ID string."""
+        return f"{self.location_name}_{self.sensor_name}"
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the sensor."""
+        attr = self.collector.warnings_data["metadata"]
+        attr[ATTR_ATTRIBUTION] = ATTRIBUTION
+        attr["warnings"] = self.collector.warnings_data["data"]
+        return attr
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        # If there is no data for this day, return state as 'None'.
+        return len(self.collector.warnings_data["data"]) > 0
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()}"
 
 
 class NowLaterSensor(SensorBase):
