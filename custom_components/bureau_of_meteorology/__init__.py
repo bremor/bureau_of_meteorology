@@ -10,7 +10,9 @@ from homeassistant.helpers import debounce
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .PyBoM.collector import Collector
-from .const import DOMAIN, COLLECTOR, COORDINATOR
+from .const import (CONF_WEATHER_NAME,
+                    CONF_FORECASTS_BASENAME,
+                    DOMAIN, COLLECTOR, COORDINATOR)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +24,23 @@ DEBOUNCE_TIME = 60  # in seconds
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the BOM component."""
     hass.data.setdefault(DOMAIN, {})
+    return True
+
+
+async def async_migrate_entry(hass, config_entry: ConfigEntry):
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version == 1:
+
+        new = {**config_entry.data}
+        if CONF_FORECASTS_BASENAME in new:
+            new[CONF_WEATHER_NAME] = config_entry.data[CONF_FORECASTS_BASENAME]
+
+        config_entry.version = 2
+        hass.config_entries.async_update_entry(config_entry, data=new)
+
+    _LOGGER.info("Migration to version %s successful", config_entry.version)
     return True
 
 
