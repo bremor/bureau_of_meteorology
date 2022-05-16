@@ -24,9 +24,25 @@ _LOGGER = logging.getLogger(__name__)
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for BOM."""
-    VERSION = 1
+    VERSION = 2
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
+    async def async_migrate_entry(hass, config_entry: ConfigEntry):
+        """Migrate old entry."""
+        _LOGGER.debug("Migrating from version %s", config_entry.version)
+
+        if config_entry.version == 1:
+
+            new = {**config_entry.data}
+            if CONF_FORECASTS_BASENAME in new:
+                new[CONF_WEATHER_NAME] = config_entry.data[CONF_FORECASTS_BASENAME]
+
+            config_entry.version = 2
+            hass.config_entries.async_update_entry(config_entry, data=new)
+
+        _LOGGER.info("Migration to version %s successful", config_entry.version)
+
+    return True
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         data_schema = vol.Schema({
