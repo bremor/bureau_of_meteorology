@@ -19,9 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensors for passed config_entry in HA."""
     hass_data = hass.data[DOMAIN][config_entry.entry_id]
-    collector = hass_data[COLLECTOR]
 
-    forecast_region = collector.daily_forecasts_data["metadata"]["forecast_region"]
     new_devices = []
 
     if config_entry.data[CONF_OBSERVATIONS_CREATE] == True:
