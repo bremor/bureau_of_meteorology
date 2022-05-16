@@ -8,7 +8,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 
 from .const import (
-    ATTRIBUTION, COLLECTOR, CONF_WEATHER_NAME, CONF_FORECASTS_BASENAME, COORDINATOR, DOMAIN,
+    ATTRIBUTION, COLLECTOR, CONF_WEATHER_NAME, COORDINATOR, DOMAIN,
     MAP_CONDITION,
 )
 
