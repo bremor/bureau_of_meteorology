@@ -197,7 +197,7 @@ class WarningsSensor(SensorBase):
     def state(self):
         """Return the state of the sensor."""
         # If there is no data for this day, return state as 'None'.
-        return len(self.collector.warnings_data["data"]) > 0
+        return len(self.collector.warnings_data["data"])
 
     @property
     def name(self):

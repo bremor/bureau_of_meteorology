@@ -15,6 +15,7 @@ from .const import (CONF_WEATHER_NAME,
                     CONF_OBSERVATIONS_BASENAME,
                     CONF_OBSERVATIONS_CREATE,
                     CONF_OBSERVATIONS_MONITORED,
+                    CONF_WARNINGS_CREATE,
                     DOMAIN,
 )
 from .PyBoM.collector import Collector
@@ -208,6 +209,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_FORECASTS_BASENAME, default=self.collector.locations_data["data"]["name"]): str,
             vol.Required(CONF_FORECASTS_MONITORED): cv.multi_select(monitored),
             vol.Required(CONF_FORECASTS_DAYS): vol.All(vol.Coerce(int), vol.Range(0, 7)),
+            vol.Required(CONF_WARNINGS_CREATE, default=True): bool,
         })
 
         errors = {}

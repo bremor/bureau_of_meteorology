@@ -44,7 +44,8 @@
         "data": {
           "forecasts_basename": "[%key:common::config_flow::data::forecasts_basename%]",
           "forecasts_monitored": "[%key:common::config_flow::data::forecasts_monitored%]",
-          "forecasts_days": "[%key:common::config_flow::data::forecasts_days%]"
+          "forecasts_days": "[%key:common::config_flow::data::forecasts_days%]",
+          "warnings_create": "[%key:common::config_flow::data::warnings_create%]"
         }
       }
     },
