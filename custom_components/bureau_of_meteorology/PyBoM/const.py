@@ -42,4 +42,5 @@ URL_BASE = "https://api.weather.bom.gov.au/v1/locations/"
 URL_DAILY = "/forecasts/daily"
 URL_HOURLY = "/forecasts/hourly"
 URL_OBSERVATIONS = "/observations"
+URL_WARNINGS = "/warnings"
 
