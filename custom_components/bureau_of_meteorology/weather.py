@@ -23,7 +23,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     if CONF_WEATHER_NAME in config_entry.data:
         location_name = config_entry.data[CONF_WEATHER_NAME]
     else:
-        location_name = "home"
+        location_name = "Home"
 
     new_devices.append(WeatherDaily(hass_data, location_name))
     new_devices.append(WeatherHourly(hass_data, location_name))
