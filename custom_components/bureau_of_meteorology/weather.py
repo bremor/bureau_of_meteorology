@@ -22,8 +22,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     if CONF_WEATHER_NAME in config_entry.data:
         location_name = config_entry.data[CONF_WEATHER_NAME]
-    elif hasattr(hass_data[COLLECTOR], "location_name"):
-        location_name = hass_data[COLLECTOR].location_name
     else:
         location_name = "home"
 
