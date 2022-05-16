@@ -10,7 +10,8 @@ from homeassistant.helpers.entity import Entity
 from .const import (
     ATTRIBUTION, COLLECTOR, CONF_FORECASTS_BASENAME, CONF_FORECASTS_CREATE,
     CONF_FORECASTS_DAYS, CONF_FORECASTS_MONITORED, CONF_OBSERVATIONS_BASENAME,
-    CONF_OBSERVATIONS_CREATE, CONF_OBSERVATIONS_MONITORED, CONF_WARNINGS_CREATE,
+    CONF_OBSERVATIONS_CREATE, CONF_OBSERVATIONS_MONITORED,
+    CONF_WARNINGS_CREATE, CONF_WARNINGS_BASENAME,
     COORDINATOR, DOMAIN, SENSOR_NAMES,
 )
 
@@ -39,7 +40,11 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
                     new_devices.append(ForecastSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], day, forecast))
 
     if config_entry.data.get(CONF_WARNINGS_CREATE, True) == True:
-        new_devices.append(WarningsSensor(hass_data, config_entry.data[CONF_FORECASTS_BASENAME], "warnings"))
+        basename = config_entry.data.get(CONF_WARNINGS_BASENAME, None)
+        if basename is None:
+            basename = config_entry.data.get(CONF_FORECASTS_BASENAME, None)
+        if basename:
+            new_devices.append(WarningsSensor(hass_data, basename, "warnings"))
 
     if new_devices:
         async_add_devices(new_devices)

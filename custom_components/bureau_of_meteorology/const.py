@@ -17,6 +17,7 @@ CONF_OBSERVATIONS_BASENAME = "observations_basename"
 CONF_OBSERVATIONS_CREATE = "observations_create"
 CONF_OBSERVATIONS_MONITORED = "observations_monitored"
 CONF_WARNINGS_CREATE = "warnings_create"
+CONF_WARNINGS_BASENAME = "warnings_basename"
 
 COORDINATOR = "coordinator"
 DOMAIN = "bureau_of_meteorology"

@@ -16,6 +16,7 @@ from .const import (CONF_WEATHER_NAME,
                     CONF_OBSERVATIONS_CREATE,
                     CONF_OBSERVATIONS_MONITORED,
                     CONF_WARNINGS_CREATE,
+                    CONF_WARNINGS_BASENAME,
                     DOMAIN,
 )
 from .PyBoM.collector import Collector
@@ -74,7 +75,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # Save the user input into self.data so it's retained
                 self.data.update(user_input)
 
-                return await self.async_step_observations()
+                return await self.async_step_sensors_create()
 
             except CannotConnect:
                 errors["base"] = "cannot_connect"
@@ -87,10 +88,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="weather_name", data_schema=data_schema, errors=errors
         )
 
-    async def async_step_observations(self, user_input=None):
+    async def async_step_sensors_create(self, user_input=None):
         """Handle the observations step."""
         data_schema = vol.Schema({
             vol.Required(CONF_OBSERVATIONS_CREATE, default=True): bool,
+            vol.Required(CONF_FORECASTS_CREATE, default=True): bool,
+            vol.Required(CONF_WARNINGS_CREATE, default=True): bool,
         })
 
         errors = {}
@@ -102,8 +105,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # Move onto the next step of the config flow
                 if self.data[CONF_OBSERVATIONS_CREATE]:
                     return await self.async_step_observations_monitored()
+                elif self.data[CONF_FORECASTS_CREATE]:
+                    return await self.async_step_forecasts_monitored()
+                elif self.data[CONF_WARNINGS_CREATE]:
+                    return await self.async_step_warnings_basename()
                 else:
-                    return await self.async_step_forecasts()
+                    return self.async_create_entry(title=self.collector.locations_data["data"]["name"], data=self.data)
 
             except CannotConnect:
                 errors["base"] = "cannot_connect"
@@ -113,7 +120,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
         return self.async_show_form(
-            step_id="observations", data_schema=data_schema, errors=errors
+            step_id="sensors_create", data_schema=data_schema, errors=errors
         )
 
     async def async_step_observations_monitored(self, user_input=None):
@@ -138,7 +145,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 self.data.update(user_input)
-                return await self.async_step_forecasts()
+
+                # Move onto the next step of the config flow
+                if self.data[CONF_FORECASTS_CREATE]:
+                    return await self.async_step_forecasts_monitored()
+                elif self.data[CONF_WARNINGS_CREATE]:
+                    return await self.async_step_warnings_basename()
+                else:
+                    return self.async_create_entry(title=self.collector.locations_data["data"]["name"], data=self.data)
+
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception:
@@ -148,36 +163,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
         return self.async_show_form(
             step_id="observations_monitored", data_schema=data_schema, errors=errors
-        )
-
-    async def async_step_forecasts(self, user_input=None):
-        """Handle the forecasts step."""
-        data_schema = vol.Schema({
-            vol.Required(CONF_FORECASTS_CREATE, default=True): bool,
-        })
-
-        errors = {}
-        if user_input is not None:
-            try:
-                # Save the user input into self.data so it's retained
-                self.data.update(user_input)
-
-                # Move onto the next step of the config flow
-                if self.data[CONF_FORECASTS_CREATE]:
-                    return await self.async_step_forecasts_monitored()
-                else:
-                   self.data[CONF_FORECASTS_BASENAME] = self.collector.locations_data["data"]["name"]
-                   return self.async_create_entry(title=self.collector.locations_data["data"]["name"], data=self.data)
-
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except Exception:
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
-
-        # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
-        return self.async_show_form(
-            step_id="forecasts", data_schema=data_schema, errors=errors
         )
 
     async def async_step_forecasts_monitored(self, user_input=None):
@@ -209,7 +194,27 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_FORECASTS_BASENAME, default=self.collector.locations_data["data"]["name"]): str,
             vol.Required(CONF_FORECASTS_MONITORED): cv.multi_select(monitored),
             vol.Required(CONF_FORECASTS_DAYS): vol.All(vol.Coerce(int), vol.Range(0, 7)),
-            vol.Required(CONF_WARNINGS_CREATE, default=True): bool,
+        })
+
+        errors = {}
+        if user_input is not None:
+            try:
+                self.data.update(user_input)
+
+                if self.data[CONF_WARNINGS_CREATE]:
+                    return await self.async_step_warnings_basename()
+                return self.async_create_entry(title=self.collector.locations_data["data"]["name"], data=self.data)
+
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+
+    async def async_step_warnings_basename(self, user_input=None):
+        """Handle the forecasts monitored step."""
+        data_schema = vol.Schema({
+            vol.Required(CONF_WARNINGS_BASENAME, default=self.collector.locations_data["data"]["name"]): str,
         })
 
         errors = {}
@@ -225,7 +230,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
         return self.async_show_form(
-            step_id="forecasts_monitored", data_schema=data_schema, errors=errors
+            step_id="warnings_basename", data_schema=data_schema, errors=errors
         )
 
 
