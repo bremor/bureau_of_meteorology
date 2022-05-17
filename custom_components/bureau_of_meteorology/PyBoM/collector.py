@@ -7,7 +7,8 @@ import logging
 from homeassistant.util import Throttle
 
 from .const import (
-    MAP_MDI_ICON, MAP_UV, URL_BASE, URL_DAILY, URL_HOURLY, URL_OBSERVATIONS,
+    MAP_MDI_ICON, MAP_UV, URL_BASE, URL_DAILY,
+    URL_HOURLY, URL_OBSERVATIONS, URL_WARNINGS
 )
 from .helpers import (
     flatten_dict, geohash_encode,
@@ -24,6 +25,7 @@ class Collector:
         self.observations_data = None
         self.daily_forecasts_data = None
         self.hourly_forecasts_data = None
+        self.warnings_data = None
         self.geohash = geohash_encode(latitude, longitude)
         _LOGGER.debug(f"Geohash: {self.geohash}")
 
@@ -82,7 +84,7 @@ class Collector:
     async def async_update(self):
         """Refresh the data on the collector object."""
         async with aiohttp.ClientSession() as session:
-        
+
             if self.locations_data is None:
                 async with session.get(URL_BASE + self.geohash) as resp:
                     self.locations_data = await resp.json()
@@ -112,3 +114,7 @@ class Collector:
                 self.hourly_forecasts_data = await resp.json()
                 await self.format_hourly_forecast_data()
                 _LOGGER.debug(f"Hourly Forecasts data: {self.hourly_forecasts_data}")
+
+            async with session.get(URL_BASE + self.geohash + URL_WARNINGS) as resp:
+                self.warnings_data = await resp.json()
+                _LOGGER.debug(f"Warnings data: {self.warnings_data}")

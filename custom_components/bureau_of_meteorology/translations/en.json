@@ -9,8 +9,8 @@
         },
         "step": {
             "user": {
-                "title": "Set up Bureau of Meteorology",
-                "description": "Latitude and longitude will be used to find the nearest weather station and to generate a forecast for your location.",
+                "title": "Set up Australian Bureau of Meteorology",
+                "description": "Latitude and longitude will be used to find the nearest weather station and to generate a forecast for your location. The default values come from your homeassistant \"Home\" zone (See Settings/Areas & Zones/Zones).",
                 "data": {
                     "latitude": "Latitude",
                     "longitude": "Longitude"
@@ -18,40 +18,42 @@
             },
             "weather_name": {
                 "title": "Choose Weather Entity Name",
-                "description": "You can choose the name of your BoM weather entity in homeassistant (eg. Warrnambool for \"weather.warrnambool\" or home for \"weather.home\"). The default is taken from your latitude and longitude.",
+                "description": "The weather entity in homeassistant holds all the basic weather observation and forecast information needed for most weather display cards. You can choose the name of your BoM weather entity (eg. Warrnambool for \"weather.warrnambool\" or home for \"weather.home\").",
                 "data": {
                     "weather_name": "Name of weather entity (weather.name)"
                 }
             },
-            "observations": {
-                "title": "Customise Observation Sensors",
-                "description": "If you do not wish to create any observation sensors, uncheck the box below.",
+            "sensors_create": {
+                "title": "Customise Additional Sensors",
+                "description": "You can also create additional sensors for specific BoM observations, forecasts and warnings (eg. sensor.brisbane_humidity). If you wish to create any additional sensors, check the boxes below and you will be asked which sensors to create.",
                 "data": {
-                    "observations_create": "Create observation sensors"
+                    "observations_create": "Create observation sensors?",
+                    "forecasts_create": "Create forecast sensors?",
+                    "warnings_create": "Create a sensor to hold warnings data?"
                 }
             },
             "observations_monitored": {
                 "title": "Customise Observation Sensors",
-                "description": "You can customise the basename of your observation sensors and which observation sensors you would like to create.",
+                "description": "You can customise the basename of your observation sensors and which observation sensors you would like to create. The default is the name of your nearest BoM weather station.",
                 "data": {
-                    "observations_basename": "Basename for all of your observation sensors",
-                    "observations_monitored": "Which sensors would you like to create?"
-                }
-            },
-            "forecasts": {
-                "title": "Customise Forecast Sensors",
-                "description": "If you do not wish to create any forecast sensors, uncheck the box below.",
-                "data": {
-                    "forecasts_create": "Create forecast sensors"
+                    "observations_basename": "Basename for the new observation sensors (e.g. sensor.basename_temperature)",
+                    "observations_monitored": "Choose the additional observation sensors you would like?"
                 }
             },
             "forecasts_monitored": {
                 "title": "Customise Forecast Sensors",
-                "description": "You can customise the basename of your forecast sensors, which forecast sensors you would like to create, and how many days you would like the forecast to be (day 5 is always available, day 6 and 7 are only sometimes available).",
+                "description": "You can customise the basename of your forecast sensors, which forecast sensors you would like to create, and how many days of forecast sensors to create (day 5 is always available, day 6 and 7 are only sometimes available). Note: this can generate a lot of new sensors!",
                 "data": {
                     "forecasts_basename": "Choose a 'basename' for your forecast sensors (e.g. sensor.basename_temp_max_0)",
                     "forecasts_monitored": "Which sensors would you like to create?",
-                    "forecasts_days": "How many forecast days would you like? (0-7)"
+                    "forecasts_days": "How many days of forecast sensors would you like? (0-7)"
+                }
+            },
+            "warnings_basename": {
+                "title": "Customise Warnings Sensor",
+                "description": "You can set the basename of the sensor which will hold the warnings data (e.g. Cairns for sensor.cairns_warnings).",
+                "data": {
+                    "warnings_basename": "Choose a name for your warnings sensor"
                 }
             }
         }
