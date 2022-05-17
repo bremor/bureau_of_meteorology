@@ -7,6 +7,15 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+## 1.1.8 - Weather Warnings
+
+- Add optional warning sesnor.
+- Rework card configuration.
+
+## 1.1.7 - Re-release of 1.1.6
+
+- The 1.1.6 got removed due to a bug in github. This was just a re-release.
+
 ## 1.1.6 - Allow setting the name of weather entities.
 - Add the ability to name the weather entities when forecast is not checked during config.
 
