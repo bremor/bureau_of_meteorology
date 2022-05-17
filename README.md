@@ -7,6 +7,11 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+## 1.1.8 - Weather Warnings
+
+- Add optional warning sesnor.
+- Rework card configuration.
+
 ## 1.1.7 - Fix upgrading
 - 1.1.6 had a problem that when upgrading the weather.xxx entities didn't migrate smoothly.
 
