@@ -8,7 +8,7 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
 ## 1.1.8 - Weather Warnings
-- Add optional warning sesnor.
+- Add optional warning sensor.
 - Rework card configuration.
 
 ## 1.1.7 - Fix upgrading
