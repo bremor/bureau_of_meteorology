@@ -211,6 +211,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
+        # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
+        return self.async_show_form(
+            step_id="forecasts_monitored", data_schema=data_schema, errors=errors
+        )
+
     async def async_step_warnings_basename(self, user_input=None):
         """Handle the forecasts monitored step."""
         data_schema = vol.Schema({
