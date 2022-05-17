@@ -16,11 +16,13 @@
           "weather_name": "[%key:common::config_flow::data::weather_name%]"
         }
       },
-      "observations": {
+      "sensors_create": {
         "title": "[%key:common::config_flow::title%]",
         "description": "[%key:common::config_flow::description%]",
         "data": {
-          "observations_create": "[%key:common::config_flow::data::observations_create%]"
+          "observations_create": "[%key:common::config_flow::data::observations_create%]",
+          "forecasts_create": "[%key:common::config_flow::data::forecasts_create%]",
+          "warnings_create": "[%key:common::config_flow::data::warnings_create%]"
         }
       },
       "observations_monitored": {
@@ -29,13 +31,6 @@
         "data": {
           "observations_basename": "[%key:common::config_flow::data::observations_basename%]",
           "observations_monitored": "[%key:common::config_flow::data::observations_monitored%]"
-        }
-      },
-      "forecasts": {
-        "title": "[%key:common::config_flow::title%]",
-        "description": "[%key:common::config_flow::description%]",
-        "data": {
-          "forecasts_create": "[%key:common::config_flow::data::forecasts_create%]"
         }
       },
       "forecasts_monitored": {
@@ -48,7 +43,15 @@
         }
       }
     },
-    "error": {
+    "warnings_basename": {
+      "title": "[%key:common::config_flow::title%]",
+      "description": "[%key:common::config_flow::description%]",
+      "data": {
+        "warnings_basename": "[%key:common::config_flow::data::warnings_basename%]"
+      }
+    }
+  },
+  "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },

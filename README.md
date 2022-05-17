@@ -12,9 +12,8 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 - Add optional warning sesnor.
 - Rework card configuration.
 
-## 1.1.7 - Re-release of 1.1.6
-
-- The 1.1.6 got removed due to a bug in github. This was just a re-release.
+## 1.1.7 - Fix upgrading
+- 1.1.6 had a problem that when upgrading the weather.xxx entities didn't migrate smoothly.
 
 ## 1.1.6 - Allow setting the name of weather entities.
 - Add the ability to name the weather entities when forecast is not checked during config.
