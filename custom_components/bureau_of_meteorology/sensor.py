@@ -144,12 +144,15 @@ class ForecastSensor(SensorBase):
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        attr = self.collector.daily_forecasts_data["metadata"]
-        attr[ATTR_ATTRIBUTION] = ATTRIBUTION
+        attr = []
 
         # If there is no data for this day, do not add attributes for this day.
         if self.day < len(self.collector.daily_forecasts_data["data"]):
+            attr = self.collector.daily_forecasts_data["metadata"]
+            attr[ATTR_ATTRIBUTION] = ATTRIBUTION
             attr[ATTR_DATE] = self.collector.daily_forecasts_data["data"][self.day]["date"]
+            if self.sensor_name.startswith('extended'):
+                attr[ATTR_STATE] = self.collector.daily_forecasts_data["data"][self.day]["extended_text"]
 
         return attr
 
