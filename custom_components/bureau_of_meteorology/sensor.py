@@ -2,7 +2,7 @@
 import logging
 
 from homeassistant.const import (
-    ATTR_ATTRIBUTION, ATTR_DATE,
+    ATTR_ATTRIBUTION, ATTR_DATE, ATTR_STATE,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
