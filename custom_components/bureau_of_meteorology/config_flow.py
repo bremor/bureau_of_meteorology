@@ -177,6 +177,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                      "uv_max_index": "UV Max Index",
                      "uv_start_time": "UV Protection Start Time",
                      "uv_end_time": "UV Protection End Time",
+                    "uv_forecast": "UV Forecast Summary",
                      "rain_amount_min": "Rain Amount Min.",
                      "rain_amount_max": "Rain Amount Max.",
                      "rain_amount_range": "Rain Amount Range",

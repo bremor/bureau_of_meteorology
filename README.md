@@ -7,6 +7,14 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+
+## 1.1.10 - Add UV Forecast
+- Adds new uv_forecast sensors to the daily forecast.
+- Make the uv_category sensors more human readable.
+
+## 1.1.9 - Add attribute to extended forecasts
+- Add 'state' attribute to extended forecast entities to hold the non-truncated forecast.
+
 ## 1.1.8 - Weather Warnings
 - Add optional warning sensor.
 - Rework card configuration.
