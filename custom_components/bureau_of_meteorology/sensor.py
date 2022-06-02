@@ -167,6 +167,8 @@ class ForecastSensor(SensorBase):
                     self.current_state = new_state[:251] + '...'
             else:
                 self.current_state = new_state
+            if (self.sensor_name == 'uv_category'):
+                self.current_state = self.current_state.replace("veryhigh", "very high").title()
 
             return self.current_state
 
