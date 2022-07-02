@@ -62,7 +62,7 @@ class WeatherBase(WeatherEntity):
         return False
 
     @property
-    def temperature(self):
+    def native_temperature(self):
         """Return the platform temperature."""
         return self.collector.observations_data["data"]["temp"]
 
@@ -72,7 +72,7 @@ class WeatherBase(WeatherEntity):
         return self.collector.daily_forecasts_data["data"][0]["mdi_icon"]
 
     @property
-    def temperature_unit(self):
+    def native_temperature_unit(self):
         """Return the unit of measurement."""
         return TEMP_CELSIUS
 
@@ -82,12 +82,12 @@ class WeatherBase(WeatherEntity):
         return self.collector.observations_data["data"]["humidity"]
 
     @property
-    def wind_speed(self):
+    def native_wind_speed(self):
         """Return the wind speed."""
         return self.collector.observations_data["data"]["wind_speed_kilometre"]
 
     @property
-    def wind_speed_unit(self):
+    def native_wind_speed_unit(self):
         """Return the unit of measurement for wind speed."""
         return SPEED_KILOMETERS_PER_HOUR
 
@@ -134,10 +134,10 @@ class WeatherDaily(WeatherBase):
         for day in range(0, days):
             forecast = {
                 "datetime": self.collector.daily_forecasts_data["data"][day]["date"],
-                "temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
+                "native_temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
                 "condition": MAP_CONDITION[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
                 "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
-                "precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
+                "native_precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
                 "precipitation_probability":  self.collector.daily_forecasts_data["data"][day]["rain_chance"],
             }
             forecasts.append(forecast)
@@ -169,12 +169,12 @@ class WeatherHourly(WeatherBase):
         for hour in range(0, hours):
             forecast = {
                 "datetime": self.collector.hourly_forecasts_data["data"][hour]["time"],
-                "temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
+                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
                 "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
-                "precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
+                "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
                 "precipitation_probability":  self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
                 "wind_bearing":  self.collector.hourly_forecasts_data["data"][hour]["wind_direction"],
-                "wind_speed":  self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
+                "native_wind_speed":  self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
             }
             forecasts.append(forecast)
         return forecasts

@@ -1,5 +1,6 @@
 {
   "name": "Bureau of Meteorology",
   "render_readme": "true",
-  "iot_class": "Cloud Polling"
+  "iot_class": "Cloud Polling",
+  "homeassistant": "2022.7.0"
 }
