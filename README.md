@@ -8,6 +8,9 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
 
+## 1.1.11 - Fixes for 2022.7.0
+  - This is to address an architecture change in 2022.7.0 and will not install on earlier versions of HA.
+  
 ## 1.1.10 - Add UV Forecast
 - Adds new uv_forecast sensors to the daily forecast.
 - Make the uv_category sensors more human readable.
