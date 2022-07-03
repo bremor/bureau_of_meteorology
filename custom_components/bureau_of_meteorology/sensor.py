@@ -154,6 +154,7 @@ class ForecastSensor(SensorBase):
             attr = self.collector.daily_forecasts_data["metadata"]
             attr[ATTR_ATTRIBUTION] = ATTRIBUTION
             attr[ATTR_DATE] = self.collector.daily_forecasts_data["data"][self.day]["date"]
+            _LOGGER.info("Timezone %s Time %s", self.collector.locations_data["data"]["timezone"], self.collector.daily_forecasts_data["data"][self.day]["date"])
             if self.sensor_name.startswith('extended'):
                 attr[ATTR_STATE] = self.collector.daily_forecasts_data["data"][self.day]["extended_text"]
 
