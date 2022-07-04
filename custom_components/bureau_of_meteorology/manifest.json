@@ -4,7 +4,7 @@
   "config_flow": true,
   "documentation": "https://github.com/bremor/bureau_of_meteorology",
   "issue_tracker": "https://github.com/bremor/bureau_of_meteorology/issues",
-  "requirements": [],
+  "requirements": ["iso8601"],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},

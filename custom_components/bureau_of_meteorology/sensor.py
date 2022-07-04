@@ -3,9 +3,10 @@ import logging
 from datetime import datetime, tzinfo
 from pytz import timezone
 import pytz
+import iso8601
 
 from homeassistant.const import (
-    ATTR_ATTRIBUTION, ATTR_DATE,
+    ATTR_ATTRIBUTION, ATTR_DATE, ATTR_STATE, DEVICE_CLASS_TIMESTAMP,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
@@ -110,7 +111,15 @@ class ObservationSensor(SensorBase):
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        attr = self.collector.observations_data["metadata"]
+        attr = {}
+
+        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+        for key in self.collector.observations_data["metadata"]:
+            try:
+                attr[key] = iso8601.parse_date(self.collector.observations_data["metadata"][key]).astimezone(tzinfo).isoformat()
+            except iso8601.ParseError:
+                attr[key] = self.collector.observations_data["metadata"][key]
+
         attr.update(self.collector.observations_data["data"]["station"])
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
         return attr
@@ -147,14 +156,18 @@ class ForecastSensor(SensorBase):
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        attr = []
+        attr = {}
 
         # If there is no data for this day, do not add attributes for this day.
         if self.day < len(self.collector.daily_forecasts_data["data"]):
-            attr = self.collector.daily_forecasts_data["metadata"]
+            tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+            for key in self.collector.daily_forecasts_data["metadata"]:
+                try:
+                    attr[key] = iso8601.parse_date(self.collector.daily_forecasts_data["metadata"][key]).astimezone(tzinfo).isoformat()
+                except iso8601.ParseError:
+                    attr[key] = self.collector.daily_forecasts_data["metadata"][key]
             attr[ATTR_ATTRIBUTION] = ATTRIBUTION
-            attr[ATTR_DATE] = self.collector.daily_forecasts_data["data"][self.day]["date"]
-            _LOGGER.info("Timezone %s Time %s", self.collector.locations_data["data"]["timezone"], self.collector.daily_forecasts_data["data"][self.day]["date"])
+            attr[ATTR_DATE] = iso8601.parse_date(self.collector.daily_forecasts_data["data"][self.day]["date"]).astimezone(tzinfo).isoformat()
             if self.sensor_name.startswith('extended'):
                 attr[ATTR_STATE] = self.collector.daily_forecasts_data["data"][self.day]["extended_text"]
 
@@ -165,6 +178,12 @@ class ForecastSensor(SensorBase):
         """Return the state of the sensor."""
         # If there is no data for this day, return state as 'None'.
         if self.day < len(self.collector.daily_forecasts_data["data"]):
+            if (self.device_class == DEVICE_CLASS_TIMESTAMP):
+                tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+                try:
+                    return iso8601.parse_date(self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]).astimezone(tzinfo).isoformat()
+                except iso8601.ParseError:
+                    return self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
             if (self.sensor_name == 'uv_forecast'):
                 if (self.collector.daily_forecasts_data["data"][self.day]["uv_category"] is None):
                     return None
