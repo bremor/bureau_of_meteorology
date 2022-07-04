@@ -48,11 +48,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # Save the user input into self.data so it's retained
                 self.data = user_input
 
-                # Populate observations and daily forecasts data
-                await self.collector.async_update()
+                # Check if location is valid
+                await self.collector.get_locations_data()
+                if self.collector.locations_data  is None:
+                    _LOGGER.debug(f"Unsupported Lat/Lon")
+                    errors["base"] = "bad_location"
+                else:
+                    # Populate observations and daily forecasts data
+                    await self.collector.async_update()
 
-                # Move onto the next step of the config flow
-                return await self.async_step_weather_name()
+                    # Move onto the next step of the config flow
+                    return await self.async_step_weather_name()
 
             except Exception:
                 _LOGGER.exception("Unexpected exception")

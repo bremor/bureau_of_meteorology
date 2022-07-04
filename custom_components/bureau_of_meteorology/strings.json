@@ -52,11 +52,12 @@
     }
   },
   "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
-    },
-    "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
-    }
+    "bad_location": "[%key:common::config_flow::error::bad_location%]",
+    "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+    "unknown": "[%key:common::config_flow::error::unknown%]"
+  },
+  "abort": {
+    "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
   }
 }
+

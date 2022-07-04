@@ -4,6 +4,7 @@
             "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
         },
         "error": {
+            "bad_location": "Unsupported Lat/Lon",
             "cannot_connect": "Cannot connect",
             "unknown": "Unknown error"
         },
@@ -57,5 +58,5 @@
                 }
             }
         }
-   }
+    }
 }
