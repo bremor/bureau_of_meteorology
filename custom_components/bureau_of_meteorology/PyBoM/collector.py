@@ -30,14 +30,12 @@ class Collector:
         _LOGGER.debug(f"Geohash: {self.geohash}")
 
     async def get_locations_data(self):
-       """Get JSON location name from BOM API endpoint."""
-       async with aiohttp.ClientSession() as session:
-           response = await session.get(URL_BASE + self.geohash)
+      """Get JSON location name from BOM API endpoint."""
+      async with aiohttp.ClientSession() as session:
+          response = await session.get(URL_BASE + self.geohash)
     
-       if response is not None and response.status == 200:
-           locations_data = await response.json()
-    #        self.location_name = locations_data["data"]["name"]
-    #        return True
+      if response is not None and response.status == 200:
+          self.locations_data = await response.json()
 
     async def format_daily_forecast_data(self):
         """Format forecast data."""
