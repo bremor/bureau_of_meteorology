@@ -29,13 +29,13 @@ class Collector:
         self.geohash = geohash_encode(latitude, longitude)
         _LOGGER.debug(f"Geohash: {self.geohash}")
 
-    #async def get_location_name(self):
-    #    """Get JSON location name from BOM API endpoint."""
-    #    async with aiohttp.ClientSession() as session:
-    #        response = await session.get(URL_BASE + self.geohash)
-    #
-    #    if response is not None and response.status == 200:
-    #        locations_data = await response.json()
+    async def get_locations_data(self):
+       """Get JSON location name from BOM API endpoint."""
+       async with aiohttp.ClientSession() as session:
+           response = await session.get(URL_BASE + self.geohash)
+    
+       if response is not None and response.status == 200:
+           locations_data = await response.json()
     #        self.location_name = locations_data["data"]["name"]
     #        return True
 
@@ -84,7 +84,6 @@ class Collector:
     async def async_update(self):
         """Refresh the data on the collector object."""
         async with aiohttp.ClientSession() as session:
-
             if self.locations_data is None:
                 async with session.get(URL_BASE + self.geohash) as resp:
                     self.locations_data = await resp.json()

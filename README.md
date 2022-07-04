@@ -1,5 +1,7 @@
 # Bureau of Meteorology Custom Component
 
+### **This integration only supports locations within Australia.**
+
 This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http://www.bom.gov.au) as a source for weather information. This grabs data from an undocumented API that is used to provide data to https://weather.bom.gov.au/
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
@@ -7,6 +9,9 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+
+## 1.1.13 - Add bad location error message
+  - Add a meaningful error message when trying to configure using lat/lon that aren't in Australia.
 
 ## 1.1.12 - Embed timezone in timestamps
   - This embeds the timezone of the location in timestamps, whcih is needed to display timess correctly if you create sensors in a different timezone to where the HA server is located.
