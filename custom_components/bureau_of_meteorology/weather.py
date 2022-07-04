@@ -1,5 +1,9 @@
 """Platform for sensor integration."""
 import logging
+from datetime import datetime, tzinfo
+from pytz import timezone
+import pytz
+import iso8601
 
 from homeassistant.components.weather import WeatherEntity
 from homeassistant.const import (
@@ -131,9 +135,10 @@ class WeatherDaily(WeatherBase):
         """Return the forecast."""
         forecasts = []
         days = len(self.collector.daily_forecasts_data["data"])
+        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for day in range(0, days):
             forecast = {
-                "datetime": self.collector.daily_forecasts_data["data"][day]["date"],
+                "datetime": iso8601.parse_date(self.collector.daily_forecasts_data["data"][day]["date"]).astimezone(tzinfo).isoformat(),
                 "native_temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
                 "condition": MAP_CONDITION[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
                 "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
@@ -166,9 +171,10 @@ class WeatherHourly(WeatherBase):
         """Return the forecast."""
         forecasts = []
         hours = len(self.collector.hourly_forecasts_data["data"])
+        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for hour in range(0, hours):
             forecast = {
-                "datetime": self.collector.hourly_forecasts_data["data"][hour]["time"],
+                "datetime": iso8601.parse_date(self.collector.hourly_forecasts_data["data"][hour]["time"]).astimezone(tzinfo).isoformat(),
                 "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
                 "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
                 "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],

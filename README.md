@@ -8,6 +8,9 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
 
+## 1.1.12 - Embed timezone in timestamps
+  - This embeds the timezone of the location in timestamps, whcih is needed to display timess correctly if you create sensors in a different timezone to where the HA server is located.
+
 ## 1.1.11 - Fixes for 2022.7.0
   - This is to address an architecture change in 2022.7.0 and will not install on earlier versions of HA.
   
