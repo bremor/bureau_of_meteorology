@@ -58,5 +58,65 @@
                 }
             }
         }
+    },
+    "options": {
+        "abort": {
+            "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+        },
+        "error": {
+            "bad_location": "Unsupported Lat/Lon",
+            "cannot_connect": "Cannot connect",
+            "unknown": "Unknown error"
+        },
+        "step": {
+            "init": {
+                "title": "Configure Australian Bureau of Meteorology",
+                "description": "Change the latitude and longitude used to find the nearest weather station.",
+                "data": {
+                    "latitude": "Latitude",
+                    "longitude": "Longitude"
+                }
+            },
+            "weather_name": {
+                "title": "Change Weather Entity Name",
+                "description": "Change the name of your BoM weather entity (eg. Warrnambool for \"weather.warrnambool\" or home for \"weather.home\").",
+                "data": {
+                    "weather_name": "Name of weather entity (weather.name)"
+                }
+            },
+            "sensors_create": {
+                "title": "Customise Additional Sensors",
+                "description": "Change which additional sensors are created for specific BoM observations, forecasts and warnings (eg. sensor.brisbane_humidity). If you wish to create any additional sensors, check the boxes below and you will be asked which sensors to create.",
+                "data": {
+                    "observations_create": "Create observation sensors?",
+                    "forecasts_create": "Create forecast sensors?",
+                    "warnings_create": "Create a sensor to hold warnings data?"
+                }
+            },
+            "observations_monitored": {
+                "title": "Change Observation Sensors",
+                "description": "You can change the basename of your observation sensors and which observation sensors you would like to create.",
+                "data": {
+                    "observations_basename": "Change the basename of the observation sensors (e.g. sensor.basename_temperature)",
+                    "observations_monitored": "Change which observation sensors to create"
+                }
+            },
+            "forecasts_monitored": {
+                "title": "Change Forecast Sensors",
+                "description": "You can change the basename of your forecast sensors, which forecast sensors you would like to create, and how many days of forecast sensors to create (day 5 is always available, day 6 and 7 are only sometimes available). Note: this can generate a lot of sensors!",
+                "data": {
+                    "forecasts_basename": "Change the basename of the forecast sensors (e.g. sensor.basename_temp_max_0)",
+                    "forecasts_monitored": "Change which forecast sensors to create",
+                    "forecasts_days": "Change the number of forecast days (0-7)"
+                }
+            },
+            "warnings_basename": {
+                "title": "Change Warnings Sensor",
+                "description": "You can change the basename of the sensor which holds the warnings data (e.g. Cairns for sensor.cairns_warnings).",
+                "data": {
+                    "warnings_basename": "Change the name of the warnings sensor"
+                }
+            }
+        }
     }
 }

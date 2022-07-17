@@ -51,6 +51,58 @@
       }
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "latitude": "[%key:common::config_flow::data::latitude%]",
+          "longitude": "[%key:common::config_flow::data::longitude%]"
+        }
+      },
+      "weather_name": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "weather_name": "[%key:common::config_flow::data::weather_name%]"
+        }
+      },
+      "sensors_create": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "observations_create": "[%key:common::config_flow::data::observations_create%]",
+          "forecasts_create": "[%key:common::config_flow::data::forecasts_create%]",
+          "warnings_create": "[%key:common::config_flow::data::warnings_create%]"
+        }
+      },
+      "observations_monitored": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "observations_basename": "[%key:common::config_flow::data::observations_basename%]",
+          "observations_monitored": "[%key:common::config_flow::data::observations_monitored%]"
+        }
+      },
+      "forecasts_monitored": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "forecasts_basename": "[%key:common::config_flow::data::forecasts_basename%]",
+          "forecasts_monitored": "[%key:common::config_flow::data::forecasts_monitored%]",
+          "forecasts_days": "[%key:common::config_flow::data::forecasts_days%]"
+        }
+      }
+    },
+    "warnings_basename": {
+      "title": "[%key:common::config_flow::title%]",
+      "description": "[%key:common::config_flow::description%]",
+      "data": {
+        "warnings_basename": "[%key:common::config_flow::data::warnings_basename%]"
+      }
+    }
+  },
   "error": {
     "bad_location": "[%key:common::config_flow::error::bad_location%]",
     "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
@@ -60,4 +112,3 @@
     "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
   }
 }
-

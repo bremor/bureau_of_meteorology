@@ -1,12 +1,18 @@
 """Constants for the BOM integration."""
 
 from homeassistant.const import (
-    DEVICE_CLASS_HUMIDITY, DEVICE_CLASS_TEMPERATURE, DEVICE_CLASS_TIMESTAMP,
-    LENGTH_MILLIMETERS, PERCENTAGE, TEMP_CELSIUS,
+    DEVICE_CLASS_HUMIDITY,
+    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_TIMESTAMP,
+    LENGTH_MILLIMETERS,
+    PERCENTAGE,
+    TEMP_CELSIUS,
 )
 
 ATTRIBUTION = "Data provided by the Australian Bureau of Meteorology"
+SHORT_ATTRIBUTION = "Australian Bureau of Meteorology"
 COLLECTOR = "collector"
+UPDATE_LISTENER = "update_listener"
 
 CONF_WEATHER_NAME = "weather_name"
 CONF_FORECASTS_BASENAME = "forecasts_basename"
@@ -23,32 +29,32 @@ COORDINATOR = "coordinator"
 DOMAIN = "bureau_of_meteorology"
 
 MAP_CONDITION = {
-    'clear': 'clear-night',
-    'cloudy': 'cloudy',
-    'cyclone': 'exceptional',
-    'dust': 'fog',
-    'dusty': 'fog',
-    'fog': 'fog',
-    'frost': 'snowy',
-    'haze': 'fog',
-    'hazy': 'fog',
-    'heavy_shower': 'rainy',
-    'heavy_showers': 'rainy',
-    'light_rain': 'rainy',
-    'light_shower': 'rainy',
-    'light_showers': 'rainy',
+    "clear": "clear-night",
+    "cloudy": "cloudy",
+    "cyclone": "exceptional",
+    "dust": "fog",
+    "dusty": "fog",
+    "fog": "fog",
+    "frost": "snowy",
+    "haze": "fog",
+    "hazy": "fog",
+    "heavy_shower": "rainy",
+    "heavy_showers": "rainy",
+    "light_rain": "rainy",
+    "light_shower": "rainy",
+    "light_showers": "rainy",
     "mostly_sunny": "sunny",
-    'partly_cloudy': 'partlycloudy',
-    'rain': 'rainy',
-    'shower': 'rainy',
-    'showers': 'rainy',
-    'snow': 'snowy',
-    'storm': 'lightning-rainy',
-    'storms': 'lightning-rainy',
-    'sunny': 'sunny',
-    'tropical_cyclone': 'exceptional',
-    'wind': 'windy',
-    'windy': 'windy',
+    "partly_cloudy": "partlycloudy",
+    "rain": "rainy",
+    "shower": "rainy",
+    "showers": "rainy",
+    "snow": "snowy",
+    "storm": "lightning-rainy",
+    "storms": "lightning-rainy",
+    "sunny": "sunny",
+    "tropical_cyclone": "exceptional",
+    "wind": "windy",
+    "windy": "windy",
     None: None,
 }
 
@@ -78,10 +84,10 @@ SENSOR_NAMES = {
     "rain_amount_range": [LENGTH_MILLIMETERS, None],
     "rain_chance": [PERCENTAGE, None],
     "fire_danger": [None, None],
-    "now_now_label":  [None, None],
-    "now_temp_now":  [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "now_later_label":  [None, None],
-    "now_temp_later":  [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "now_now_label": [None, None],
+    "now_temp_now": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "now_later_label": [None, None],
+    "now_temp_later": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
     "astronomical_sunrise_time": [None, DEVICE_CLASS_TIMESTAMP],
     "astronomical_sunset_time": [None, DEVICE_CLASS_TIMESTAMP],
     "warnings": [None, None],
