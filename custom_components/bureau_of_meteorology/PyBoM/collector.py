@@ -26,16 +26,18 @@ class Collector:
         self.daily_forecasts_data = None
         self.hourly_forecasts_data = None
         self.warnings_data = None
-        self.geohash = geohash_encode(latitude, longitude)
-        _LOGGER.debug(f"Geohash: {self.geohash}")
+        self.geohash7 = geohash_encode(latitude, longitude)
+        self.geohash6 = self.geohash7[:6]
+         _LOGGER.debug(f"Geohash: {self.geohash7}")
 
     async def get_locations_data(self):
-      """Get JSON location name from BOM API endpoint."""
-      async with aiohttp.ClientSession() as session:
-          response = await session.get(URL_BASE + self.geohash)
-    
-      if response is not None and response.status == 200:
-          self.locations_data = await response.json()
+        """Get JSON location name from BOM API endpoint."""
+        async with aiohttp.ClientSession() as session:
+            _LOGGER.debug(f"Geohash URL: {URL_BASE + self.geohash7}")
+            response = await session.get(URL_BASE + self.geohash7)
+
+        if response is not None and response.status == 200:
+            self.locations_data = await response.json()
 
     async def format_daily_forecast_data(self):
         """Format forecast data."""
@@ -83,11 +85,11 @@ class Collector:
         """Refresh the data on the collector object."""
         async with aiohttp.ClientSession() as session:
             if self.locations_data is None:
-                async with session.get(URL_BASE + self.geohash) as resp:
+                async with session.get(URL_BASE + self.geohash7) as resp:
                     self.locations_data = await resp.json()
                     _LOGGER.debug(f"Locations data: {self.locations_data}")
 
-            async with session.get(URL_BASE + self.geohash + URL_OBSERVATIONS) as resp:
+            async with session.get(URL_BASE + self.geohash6 + URL_OBSERVATIONS) as resp:
                 self.observations_data = await resp.json()
                 if self.observations_data["data"]["wind"] is not None:
                     flatten_dict(["wind"], self.observations_data["data"])
@@ -102,16 +104,17 @@ class Collector:
                     self.observations_data["data"]["gust_speed_knot"] = "unavailable"
                 _LOGGER.debug(f"Observations data: {self.observations_data}")
 
-            async with session.get(URL_BASE + self.geohash + URL_DAILY) as resp:
+            async with session.get(URL_BASE + self.geohash6 + URL_DAILY) as resp:
                 self.daily_forecasts_data = await resp.json()
                 await self.format_daily_forecast_data()
                 _LOGGER.debug(f"Forecasts data: {self.daily_forecasts_data}")
 
-            async with session.get(URL_BASE + self.geohash + URL_HOURLY) as resp:
+            async with session.get(URL_BASE + self.geohash6 + URL_HOURLY) as resp:
                 self.hourly_forecasts_data = await resp.json()
                 await self.format_hourly_forecast_data()
-                _LOGGER.debug(f"Hourly Forecasts data: {self.hourly_forecasts_data}")
+                _LOGGER.debug(
+                    f"Hourly Forecasts data: {self.hourly_forecasts_data}")
 
-            async with session.get(URL_BASE + self.geohash + URL_WARNINGS) as resp:
+            async with session.get(URL_BASE + self.geohash6 + URL_WARNINGS) as resp:
                 self.warnings_data = await resp.json()
                 _LOGGER.debug(f"Warnings data: {self.warnings_data}")
