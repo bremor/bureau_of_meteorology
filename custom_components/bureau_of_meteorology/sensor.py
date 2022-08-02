@@ -171,10 +171,6 @@ class SensorBase(Entity):
         return False
 
     @property
-    def entity_category(self) -> EntityCategory:
-        return EntityCategory.DIAGNOSTIC
-
-    @property
     def device_class(self):
         """Return the name of the sensor."""
         return SENSOR_NAMES[self.sensor_name][1]
