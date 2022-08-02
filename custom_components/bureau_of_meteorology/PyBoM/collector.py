@@ -33,7 +33,6 @@ class Collector:
     async def get_locations_data(self):
         """Get JSON location name from BOM API endpoint."""
         async with aiohttp.ClientSession() as session:
-            _LOGGER.debug(f"Geohash URL: {URL_BASE + self.geohash7}")
             response = await session.get(URL_BASE + self.geohash7)
 
         if response is not None and response.status == 200:
