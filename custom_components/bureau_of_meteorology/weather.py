@@ -1,58 +1,77 @@
 """Platform for sensor integration."""
+from __future__ import annotations
+
 import logging
 from datetime import datetime, tzinfo
-from pytz import timezone
-import pytz
+
 import iso8601
-
+import pytz
 from homeassistant.components.weather import WeatherEntity
-from homeassistant.const import (
-    TEMP_CELSIUS, SPEED_KILOMETERS_PER_HOUR,
-)
-from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import SPEED_KILOMETERS_PER_HOUR, TEMP_CELSIUS
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.device_registry import DeviceEntryType
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from pytz import timezone
 
+from . import BomDataUpdateCoordinator
 from .const import (
-    ATTRIBUTION, COLLECTOR, CONF_WEATHER_NAME, COORDINATOR, DOMAIN,
+    ATTRIBUTION,
+    COLLECTOR,
+    CONF_WEATHER_NAME,
+    COORDINATOR,
+    DOMAIN,
     MAP_CONDITION,
+    SHORT_ATTRIBUTION,
 )
+from .PyBoM.collector import Collector
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, config_entry, async_add_devices):
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Add sensors for passed config_entry in HA."""
     hass_data = hass.data[DOMAIN][config_entry.entry_id]
 
-    new_devices = []
+    new_entities = []
 
-    if CONF_WEATHER_NAME in config_entry.data:
-        location_name = config_entry.data[CONF_WEATHER_NAME]
-    else:
-        location_name = "Home"
+    location_name = config_entry.options.get(
+        CONF_WEATHER_NAME, config_entry.data.get(CONF_WEATHER_NAME, "Home")
+    )
 
-    new_devices.append(WeatherDaily(hass_data, location_name))
-    new_devices.append(WeatherHourly(hass_data, location_name))
+    new_entities.append(WeatherDaily(hass_data, location_name))
+    new_entities.append(WeatherHourly(hass_data, location_name))
 
-    if new_devices:
-        async_add_devices(new_devices)
+    if new_entities:
+        async_add_entities(new_entities, update_before_add=False)
 
 
 class WeatherBase(WeatherEntity):
     """Base representation of a BOM weather entity."""
 
-    def __init__(self, hass_data, location_name):
+    def __init__(self, hass_data, location_name) -> None:
         """Initialize the sensor."""
-        self.collector = hass_data[COLLECTOR]
-        self.coordinator = hass_data[COORDINATOR]
-        self.location_name = location_name
+        self.collector: Collector = hass_data[COLLECTOR]
+        self.coordinator: BomDataUpdateCoordinator = hass_data[COORDINATOR]
+        self.location_name: str = location_name
+        self._attr_device_info = DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            identifiers={(DOMAIN, self.location_name)},
+            manufacturer=SHORT_ATTRIBUTION,
+            name=self.location_name,
+        )
 
     async def async_added_to_hass(self) -> None:
         """Set up a listener and load data."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self._update_callback)
-        )
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self._update_callback)
-        )
+        self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
+        self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
         self._update_callback()
 
     @callback
@@ -108,10 +127,13 @@ class WeatherBase(WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        return MAP_CONDITION[self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]]
+        return MAP_CONDITION[
+            self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]
+        ]
 
     async def async_update(self):
         await self.coordinator.async_update()
+
 
 class WeatherDaily(WeatherBase):
     """Representation of a BOM weather entity."""
@@ -138,12 +160,24 @@ class WeatherDaily(WeatherBase):
         tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for day in range(0, days):
             forecast = {
-                "datetime": iso8601.parse_date(self.collector.daily_forecasts_data["data"][day]["date"]).astimezone(tzinfo).isoformat(),
-                "native_temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
-                "condition": MAP_CONDITION[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
+                "datetime": iso8601.parse_date(
+                    self.collector.daily_forecasts_data["data"][day]["date"]
+                )
+                .astimezone(tzinfo)
+                .isoformat(),
+                "native_temperature": self.collector.daily_forecasts_data["data"][day][
+                    "temp_max"
+                ],
+                "condition": MAP_CONDITION[
+                    self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]
+                ],
                 "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
-                "native_precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
-                "precipitation_probability":  self.collector.daily_forecasts_data["data"][day]["rain_chance"],
+                "native_precipitation": self.collector.daily_forecasts_data["data"][
+                    day
+                ]["rain_amount_max"],
+                "precipitation_probability": self.collector.daily_forecasts_data[
+                    "data"
+                ][day]["rain_chance"],
             }
             forecasts.append(forecast)
         return forecasts
@@ -174,13 +208,31 @@ class WeatherHourly(WeatherBase):
         tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for hour in range(0, hours):
             forecast = {
-                "datetime": iso8601.parse_date(self.collector.hourly_forecasts_data["data"][hour]["time"]).astimezone(tzinfo).isoformat(),
-                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
-                "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
-                "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
-                "precipitation_probability":  self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
-                "wind_bearing":  self.collector.hourly_forecasts_data["data"][hour]["wind_direction"],
-                "native_wind_speed":  self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
+                "datetime": iso8601.parse_date(
+                    self.collector.hourly_forecasts_data["data"][hour]["time"]
+                )
+                .astimezone(tzinfo)
+                .isoformat(),
+                "native_temperature": self.collector.hourly_forecasts_data["data"][
+                    hour
+                ]["temp"],
+                "condition": MAP_CONDITION[
+                    self.collector.hourly_forecasts_data["data"][hour][
+                        "icon_descriptor"
+                    ]
+                ],
+                "native_precipitation": self.collector.hourly_forecasts_data["data"][
+                    hour
+                ]["rain_amount_max"],
+                "precipitation_probability": self.collector.hourly_forecasts_data[
+                    "data"
+                ][hour]["rain_chance"],
+                "wind_bearing": self.collector.hourly_forecasts_data["data"][hour][
+                    "wind_direction"
+                ],
+                "native_wind_speed": self.collector.hourly_forecasts_data["data"][hour][
+                    "wind_speed_kilometre"
+                ],
             }
             forecasts.append(forecast)
         return forecasts
