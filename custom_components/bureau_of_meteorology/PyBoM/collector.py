@@ -28,7 +28,7 @@ class Collector:
         self.warnings_data = None
         self.geohash7 = geohash_encode(latitude, longitude)
         self.geohash6 = self.geohash7[:6]
-         _LOGGER.debug(f"Geohash: {self.geohash7}")
+        _LOGGER.debug(f"Geohash: {self.geohash7}")
 
     async def get_locations_data(self):
         """Get JSON location name from BOM API endpoint."""
