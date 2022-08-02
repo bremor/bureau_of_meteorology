@@ -188,7 +188,7 @@ class ForecastSensor(SensorBase):
                 if (self.collector.daily_forecasts_data["data"][self.day]["uv_category"] is None):
                     return None
                 if (self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"] is None):
-                    return f'Sun protection not recommended, UV Index predicted to reach ' \
+                    return f'Sun protection not required, UV Index predicted to reach ' \
                         f'{self.collector.daily_forecasts_data["data"][self.day]["uv_max_index"]} ' \
                         f'[{self.collector.daily_forecasts_data["data"][self.day]["uv_category"].replace("veryhigh", "very high").title()}]'
                 else:
