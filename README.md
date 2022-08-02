@@ -10,6 +10,12 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
 
+## 1.1.14 - Allow reconfiguration
+  - Allow integration reconfiguration (thanks to @Djelibeybi for the contribution).
+  - Register entities within a service  (thanks to @Djelibeybi for the contribution).
+  - Adjust UV text to match an update made on the BoM site.
+  - Fix a problem with the call to the location api not returning a valid location.
+
 ## 1.1.13 - Add bad location error message
   - Add a meaningful error message when trying to configure using lat/lon that aren't in Australia.
 
