@@ -50,7 +50,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 # Check if location is valid
                 await self.collector.get_locations_data()
-                if self.collector.locations_data  is None:
+                if self.collector.locations_data is None:
                     _LOGGER.debug(f"Unsupported Lat/Lon")
                     errors["base"] = "bad_location"
                 else:
