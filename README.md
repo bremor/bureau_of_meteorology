@@ -10,7 +10,7 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
 ## 1.1.15 - Add more sensor data
-  - Add a color attributes to the fire danger sensor.
+  - Add color attributes to the fire danger sensor.
   - Add observation sensors for observed min/max along with timestamp.
 
 ## 1.1.14 - Allow reconfiguration
