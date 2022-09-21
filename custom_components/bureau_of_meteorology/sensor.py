@@ -277,11 +277,11 @@ class ForecastSensor(SensorBase):
                 .astimezone(tzinfo)
                 .isoformat()
             )
+            if (self.sensor_name == "fire_danger") and (self.current_state != None):
+                attr["color_fill"] = self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["default_colour"]
+                attr["color_text"] =  "#ffffff" if (self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["text"] == "Catastrophic") else "#000000"
             if self.sensor_name.startswith("extended"):
-                attr[ATTR_STATE] = self.collector.daily_forecasts_data["data"][
-                    self.day
-                ]["extended_text"]
-
+                attr[ATTR_STATE] = self.collector.daily_forecasts_data["data"][self.day]["extended_text"]
         return attr
 
     @property
@@ -349,9 +349,7 @@ class ForecastSensor(SensorBase):
                         f'{self.collector.daily_forecasts_data["data"][self.day]["uv_max_index"]} '
                         f'[{self.collector.daily_forecasts_data["data"][self.day]["uv_category"].replace("veryhigh", "very high").title()}]'
                     )
-            new_state = self.collector.daily_forecasts_data["data"][self.day][
-                self.sensor_name
-            ]
+            new_state = self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
             if type(new_state) == str and len(new_state) > 251:
                 self.current_state = new_state[:251] + "..."
             else:

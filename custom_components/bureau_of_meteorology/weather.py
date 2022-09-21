@@ -160,24 +160,12 @@ class WeatherDaily(WeatherBase):
         tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for day in range(0, days):
             forecast = {
-                "datetime": iso8601.parse_date(
-                    self.collector.daily_forecasts_data["data"][day]["date"]
-                )
-                .astimezone(tzinfo)
-                .isoformat(),
-                "native_temperature": self.collector.daily_forecasts_data["data"][day][
-                    "temp_max"
-                ],
-                "condition": MAP_CONDITION[
-                    self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]
-                ],
+                "datetime": iso8601.parse_date(self.collector.daily_forecasts_data["data"][day]["date"]).astimezone(tzinfo).isoformat(),
+                "native_temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
+                "condition": MAP_CONDITION[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
                 "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
-                "native_precipitation": self.collector.daily_forecasts_data["data"][
-                    day
-                ]["rain_amount_max"],
-                "precipitation_probability": self.collector.daily_forecasts_data[
-                    "data"
-                ][day]["rain_chance"],
+                "native_precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
+                "precipitation_probability": self.collector.daily_forecasts_data["data"][day]["rain_chance"],
             }
             forecasts.append(forecast)
         return forecasts
@@ -208,31 +196,13 @@ class WeatherHourly(WeatherBase):
         tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for hour in range(0, hours):
             forecast = {
-                "datetime": iso8601.parse_date(
-                    self.collector.hourly_forecasts_data["data"][hour]["time"]
-                )
-                .astimezone(tzinfo)
-                .isoformat(),
-                "native_temperature": self.collector.hourly_forecasts_data["data"][
-                    hour
-                ]["temp"],
-                "condition": MAP_CONDITION[
-                    self.collector.hourly_forecasts_data["data"][hour][
-                        "icon_descriptor"
-                    ]
-                ],
-                "native_precipitation": self.collector.hourly_forecasts_data["data"][
-                    hour
-                ]["rain_amount_max"],
-                "precipitation_probability": self.collector.hourly_forecasts_data[
-                    "data"
-                ][hour]["rain_chance"],
-                "wind_bearing": self.collector.hourly_forecasts_data["data"][hour][
-                    "wind_direction"
-                ],
-                "native_wind_speed": self.collector.hourly_forecasts_data["data"][hour][
-                    "wind_speed_kilometre"
-                ],
+                "datetime": iso8601.parse_date(self.collector.hourly_forecasts_data["data"][hour]["time"]).astimezone(tzinfo).isoformat(),
+                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
+                "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
+                "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
+                "precipitation_probability": self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
+                "wind_bearing": self.collector.hourly_forecasts_data["data"][hour]["wind_direction"],
+                "native_wind_speed": self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
             }
             forecasts.append(forecast)
         return forecasts
