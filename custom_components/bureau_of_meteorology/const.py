@@ -61,6 +61,8 @@ MAP_CONDITION = {
 SENSOR_NAMES = {
     "temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
     "temp_feels_like": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "max_temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "min_temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
     "rain_since_9am": [LENGTH_MILLIMETERS, None],
     "humidity": [PERCENTAGE, DEVICE_CLASS_HUMIDITY],
     "wind_speed_kilometre": ["km/h", None],

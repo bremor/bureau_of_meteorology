@@ -205,18 +205,14 @@ class ObservationSensor(SensorBase):
         tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
         for key in self.collector.observations_data["metadata"]:
             try:
-                attr[key] = (
-                    iso8601.parse_date(
-                        self.collector.observations_data["metadata"][key]
-                    )
-                    .astimezone(tzinfo)
-                    .isoformat()
-                )
+                attr[key] = iso8601.parse_date(self.collector.observations_data["metadata"][key]).astimezone(tzinfo).isoformat()
             except iso8601.ParseError:
                 attr[key] = self.collector.observations_data["metadata"][key]
 
         attr.update(self.collector.observations_data["data"]["station"])
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
+        if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
+            attr["time_observed"] = iso8601.parse_date(self.collector.observations_data["data"][self.sensor_name]["time"]).astimezone(tzinfo).isoformat()
         return attr
 
     @property
@@ -224,9 +220,10 @@ class ObservationSensor(SensorBase):
         """Return the state of the sensor."""
         if self.sensor_name in self.collector.observations_data["data"]:
             if self.collector.observations_data["data"][self.sensor_name] is not None:
-                self.current_state = self.collector.observations_data["data"][
-                    self.sensor_name
-                ]
+                if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
+                    self.current_state = self.collector.observations_data["data"][self.sensor_name]["value"]
+                else:
+                    self.current_state = self.collector.observations_data["data"][self.sensor_name]
             else:
                 self.current_state = "unavailable"
         return self.current_state
@@ -260,23 +257,11 @@ class ForecastSensor(SensorBase):
             tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
             for key in self.collector.daily_forecasts_data["metadata"]:
                 try:
-                    attr[key] = (
-                        iso8601.parse_date(
-                            self.collector.daily_forecasts_data["metadata"][key]
-                        )
-                        .astimezone(tzinfo)
-                        .isoformat()
-                    )
+                    attr[key] = iso8601.parse_date(self.collector.daily_forecasts_data["metadata"][key]).astimezone(tzinfo).isoformat()
                 except iso8601.ParseError:
                     attr[key] = self.collector.daily_forecasts_data["metadata"][key]
             attr[ATTR_ATTRIBUTION] = ATTRIBUTION
-            attr[ATTR_DATE] = (
-                iso8601.parse_date(
-                    self.collector.daily_forecasts_data["data"][self.day]["date"]
-                )
-                .astimezone(tzinfo)
-                .isoformat()
-            )
+            attr[ATTR_DATE] = iso8601.parse_date(self.collector.daily_forecasts_data["data"][self.day]["date"]).astimezone(tzinfo).isoformat()
             if (self.sensor_name == "fire_danger") and (self.current_state != None):
                 attr["color_fill"] = self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["default_colour"]
                 attr["color_text"] =  "#ffffff" if (self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["text"] == "Catastrophic") else "#000000"
@@ -294,31 +279,13 @@ class ForecastSensor(SensorBase):
                     self.collector.locations_data["data"]["timezone"]
                 )
                 try:
-                    return (
-                        iso8601.parse_date(
-                            self.collector.daily_forecasts_data["data"][self.day][
-                                self.sensor_name
-                            ]
-                        )
-                        .astimezone(tzinfo)
-                        .isoformat()
-                    )
+                    return iso8601.parse_date(self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]).astimezone(tzinfo).isoformat()
                 except iso8601.ParseError:
-                    return self.collector.daily_forecasts_data["data"][self.day][
-                        self.sensor_name
-                    ]
+                    return self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
             if self.sensor_name == "uv_forecast":
-                if (
-                    self.collector.daily_forecasts_data["data"][self.day]["uv_category"]
-                    is None
-                ):
+                if (self.collector.daily_forecasts_data["data"][self.day]["uv_category"] is None):
                     return None
-                if (
-                    self.collector.daily_forecasts_data["data"][self.day][
-                        "uv_start_time"
-                    ]
-                    is None
-                ):
+                if (self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"] is None):
                     return (
                         f"Sun protection not required, UV Index predicted to reach "
                         f'{self.collector.daily_forecasts_data["data"][self.day]["uv_max_index"]} '
@@ -327,22 +294,8 @@ class ForecastSensor(SensorBase):
                 else:
                     utc = pytz.utc
                     local = timezone(self.collector.locations_data["data"]["timezone"])
-                    start_time = utc.localize(
-                        datetime.strptime(
-                            self.collector.daily_forecasts_data["data"][self.day][
-                                "uv_start_time"
-                            ],
-                            "%Y-%m-%dT%H:%M:%SZ",
-                        )
-                    ).astimezone(local)
-                    end_time = utc.localize(
-                        datetime.strptime(
-                            self.collector.daily_forecasts_data["data"][self.day][
-                                "uv_end_time"
-                            ],
-                            "%Y-%m-%dT%H:%M:%SZ",
-                        )
-                    ).astimezone(local)
+                    start_time = utc.localize(datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"], "%Y-%m-%dT%H:%M:%SZ")).astimezone(local)
+                    end_time = utc.localize(datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_end_time"], "%Y-%m-%dT%H:%M:%SZ")).astimezone(local)
                     return (
                         f'Sun protection recommended from {start_time.strftime("%-I:%M%p").lower()} to '
                         f'{end_time.strftime("%-I:%M%p").lower()}, UV Index predicted to reach '
@@ -355,12 +308,8 @@ class ForecastSensor(SensorBase):
             else:
                 self.current_state = new_state
             if (self.sensor_name == "uv_category") and (self.current_state != None):
-                self.current_state = self.current_state.replace(
-                    "veryhigh", "very high"
-                ).title()
-
+                self.current_state = self.current_state.replace("veryhigh", "very high").title()
             return self.current_state
-
         else:
             return None
 
