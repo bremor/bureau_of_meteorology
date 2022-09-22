@@ -203,6 +203,9 @@ class WeatherHourly(WeatherBase):
                 "precipitation_probability": self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
                 "wind_bearing": self.collector.hourly_forecasts_data["data"][hour]["wind_direction"],
                 "native_wind_speed": self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
+                "wind_gust_speed": self.collector.hourly_forecasts_data["data"][hour]["wind_gust_speed_kilometre"],
+                "humidity": self.collector.hourly_forecasts_data["data"][hour]["relative_humidity"],
+                "uv": self.collector.hourly_forecasts_data["data"][hour]["uv"],
             }
             forecasts.append(forecast)
         return forecasts
