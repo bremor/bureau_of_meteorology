@@ -9,6 +9,8 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
 
+## 1.1.17 - Adjust rain range format
+  - On some cards (particularly on mobile devices) with larger numbers the rain range fields where getting to wide to fit. The range fields format has been updated from `25 to 30mm` to `25-30mm` to overcome this problem.
 ## 1.1.16 - Add more data to hourly forecast
   - Add humidity to hourly forecast
   - Add UV to hourly forecast
