@@ -58,7 +58,7 @@ class Collector:
                 d["rain_amount_max"] = d["rain_amount_min"]
                 d["rain_amount_range"] = d["rain_amount_min"]
             else:
-                d["rain_amount_range"] = f"{d['rain_amount_min']} to {d['rain_amount_max']}"
+                d["rain_amount_range"] = f"{d['rain_amount_min']}–{d['rain_amount_max']}"
 
     async def format_hourly_forecast_data(self):
         """Format forecast data."""
