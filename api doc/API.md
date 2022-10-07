@@ -59,7 +59,7 @@ https://api.weather.bom.gov.au/v1/locations/{geohash}
 
 This returns the observation from the nearest monitoring station.
 
-https://api.weather.bom.gov.au/v1/locations/{geohas}/observations
+https://api.weather.bom.gov.au/v1/locations/{geohash}/observations
 
 ```json
 {
@@ -109,7 +109,7 @@ https://api.weather.bom.gov.au/v1/locations/{geohas}/observations
 
 This returns the daily forecasts for the given geohash.
 
-https://api.weather.bom.gov.au/v1/locations/{geohas}/forecasts/daily
+https://api.weather.bom.gov.au/v1/locations/{geohash}/forecasts/daily
 
 ```json
 {
@@ -2239,5 +2239,44 @@ https://api.weather.bom.gov.au/v1/locations/{geohas}/forecasts/hourly
       "next_forecast_period": "2022-10-10T01:00:00Z"
     }
   ]
+}
+```
+
+## Warnings
+
+This returns the warnings for the given geohash.
+
+https://api.weather.bom.gov.au/v1/locations/{geohash}/warnings
+
+```json
+{
+  "data": [
+    {
+      "id": "NSW_FL049_IDN36503",
+      "type": "flood_watch",
+      "title": "Flood Watch for Queanbeyan and Molonglo Rivers",
+      "short_title": "Flood Watch",
+      "state": "NSW",
+      "warning_group_type": "major",
+      "issue_time": "2022-10-07T00:18:46Z",
+      "expiry_time": "2022-10-08T06:18:46Z",
+      "phase": "renewal"
+    },
+    {
+      "id": "NSW_PW017_IDN29000",
+      "type": "sheep_graziers_warning",
+      "title": "Sheep Graziers Warning for Australian Capital Territory forecast district",
+      "short_title": "Sheep Graziers Warning",
+      "state": "NSW",
+      "warning_group_type": "minor",
+      "issue_time": "2022-10-07T00:21:57Z",
+      "expiry_time": "2022-10-07T08:21:57Z",
+      "phase": "renewal"
+    }
+  ],
+  "metadata": {
+    "response_timestamp": "2022-10-07T01:08:55Z",
+    "copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+  }
 }
 ```
