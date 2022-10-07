@@ -12,19 +12,19 @@ https://api.weather.bom.gov.au/v1/locations?search=-12.463763,130.844398
 
 ```json
 {
-"metadata": {
-"response_timestamp": "2022-10-07T00:04:27Z",
-"copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
-},
-"data": [
-{
-"geohash": "qvv117j",
-"id": "Darwin City-qvv117j",
-"name": "Darwin City",
-"postcode": null,
-"state": "NT"
-}
-]
+	"metadata": {
+		"response_timestamp": "2022-10-07T00:04:27Z",
+		"copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+	},
+	"data": [
+		{
+			"geohash": "qvv117j",
+			"id": "Darwin City-qvv117j",
+			"name": "Darwin City",
+			"postcode": null,
+			"state": "NT"
+		}
+	]
 }
 ```
 
