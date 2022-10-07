@@ -1,3 +1,411 @@
+# Bureau of Meteorology API documentation
+
+This folder contains example output of the BoM's non-documented API's. The API's are used by the BoM's mobile app as well as https://weather.bom.gov.au
+
+The are a number of different API's that all return data as json. To select the location the url's include a 7 character geohash.
+
+## Location Search
+
+This is used to fetch the geohash for a given latitude/longitude.
+
+https://api.weather.bom.gov.au/v1/locations?search=-12.463763,130.844398
+
+```json
+{
+"metadata": {
+"response_timestamp": "2022-10-07T00:04:27Z",
+"copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+},
+"data": [
+{
+"geohash": "qvv117j",
+"id": "Darwin City-qvv117j",
+"name": "Darwin City",
+"postcode": null,
+"state": "NT"
+}
+]
+}
+```
+
+## Location Info
+
+This returns a set of information for the given geohash.
+
+https://api.weather.bom.gov.au/v1/locations/{geohash}
+
+```json
+{
+	"metadata": {
+		"response_timestamp": "2022-10-07T00:27:52Z",
+		"copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+	},
+	"data": {
+		"geohash": "qvv117n",
+		"timezone": "Australia/Darwin",
+		"latitude": -12.463302612304688,
+		"longitude": 130.84510803222656,
+		"marine_area_id": "NT_MW007",
+		"tidal_point": "NT_TP001",
+		"has_wave": true,
+		"id": "Darwin City-qvv117n",
+		"name": "Darwin City",
+		"state": "NT"
+	}
+}
+```
+
+## Observations
+
+This returns the observation from the nearest monitoring station.
+
+https://api.weather.bom.gov.au/v1/locations/{geohas}/observations
+
+```json
+{
+	"metadata": {
+		"response_timestamp": "2022-10-07T00:19:26Z",
+		"issue_time": "2022-10-07T00:11:02Z",
+		"observation_time": "2022-10-07T00:10:00Z",
+		"copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+	},
+	"data": {
+		"temp": 30.5,
+		"temp_feels_like": 33.6,
+		"wind": {
+			"speed_kilometre": 11,
+			"speed_knot": 6,
+			"direction": "SW"
+		},
+		"gust": {
+			"speed_kilometre": 13,
+			"speed_knot": 7
+		},
+		"max_gust": {
+			"speed_kilometre": 20,
+			"speed_knot": 11,
+			"time": "2022-10-06T16:43:00Z"
+		},
+		"max_temp": {
+			"time": "2022-10-07T00:01:00Z",
+			"value": 30.7
+		},
+		"min_temp": {
+			"time": "2022-10-06T20:57:00Z",
+			"value": 25.5
+		},
+		"rain_since_9am": 0,
+		"humidity": 64,
+		"station": {
+			"bom_id": "014015",
+			"name": "Darwin Airport",
+			"distance": 6899
+		}
+	}
+}
+```
+
+## Daily forecasts
+
+This returns the daily forecasts for the given geohash.
+
+https://api.weather.bom.gov.au/v1/locations/{geohas}/forecasts/daily
+
+```json
+{
+	"data": [
+		{
+			"rain": {
+				"amount": {
+					"min": 1,
+					"max": 4,
+					"lower_range": 0,
+					"upper_range": 4,
+					"units": "mm"
+				},
+				"chance": 70,
+				"precipitation_amount_25_percent_chance": 4,
+				"precipitation_amount_50_percent_chance": 1,
+				"precipitation_amount_75_percent_chance": 0
+			},
+			"uv": {
+				"category": "extreme",
+				"end_time": "2022-10-07T06:50:00Z",
+				"max_index": 12,
+				"start_time": "2022-10-06T23:20:00Z"
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-06T20:57:40Z",
+				"sunset_time": "2022-10-07T09:13:56Z"
+			},
+			"date": "2022-10-06T14:30:00Z",
+			"temp_max": 34,
+			"temp_min": 25,
+			"extended_text": "Partly cloudy. Medium chance of showers. The chance of a thunderstorm. Light winds becoming northwesterly 15 to 25 km/h in the middle of the day then tending westerly in the evening.",
+			"icon_descriptor": "storm",
+			"short_text": "Shower or two. Possible storm.",
+			"surf_danger": "High",
+			"fire_danger": "High",
+			"fire_danger_category": {
+				"text": "High",
+				"default_colour": "#fedd3a",
+				"dark_mode_colour": "#fedd3a"
+			},
+			"now": {
+				"is_night": false,
+				"now_label": "Max",
+				"later_label": "Overnight Min",
+				"temp_now": 34,
+				"temp_later": 25
+			}
+		},
+		{
+			"rain": {
+				"amount": {
+					"min": 3,
+					"max": 10,
+					"lower_range": 0,
+					"upper_range": 10,
+					"units": "mm"
+				},
+				"chance": 70,
+				"precipitation_amount_25_percent_chance": 10,
+				"precipitation_amount_50_percent_chance": 3,
+				"precipitation_amount_75_percent_chance": 0
+			},
+			"uv": {
+				"category": "extreme",
+				"end_time": "2022-10-08T06:50:00Z",
+				"max_index": 13,
+				"start_time": "2022-10-07T23:20:00Z"
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-07T20:57:01Z",
+				"sunset_time": "2022-10-08T09:13:59Z"
+			},
+			"date": "2022-10-07T14:30:00Z",
+			"temp_max": 34,
+			"temp_min": 25,
+			"extended_text": "Partly cloudy. High chance of showers. The chance of a thunderstorm. Light winds becoming northwesterly 15 to 20 km/h in the early afternoon then becoming light in the late afternoon.",
+			"icon_descriptor": "storm",
+			"short_text": "Shower or two. Possible storm.",
+			"surf_danger": null,
+			"fire_danger": "Moderate",
+			"fire_danger_category": {
+				"text": "Moderate",
+				"default_colour": "#64bf30",
+				"dark_mode_colour": "#64bf30"
+			}
+		},
+		{
+			"rain": {
+				"amount": {
+					"min": 6,
+					"max": 15,
+					"lower_range": 2,
+					"upper_range": 15,
+					"units": "mm"
+				},
+				"chance": 80,
+				"precipitation_amount_25_percent_chance": 15,
+				"precipitation_amount_50_percent_chance": 6,
+				"precipitation_amount_75_percent_chance": 2
+			},
+			"uv": {
+				"category": "extreme",
+				"end_time": "2022-10-09T06:50:00Z",
+				"max_index": 13,
+				"start_time": "2022-10-08T23:10:00Z"
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-08T20:56:23Z",
+				"sunset_time": "2022-10-09T09:14:02Z"
+			},
+			"date": "2022-10-08T14:30:00Z",
+			"temp_max": 34,
+			"temp_min": 25,
+			"extended_text": "Partly cloudy. High chance of showers. The chance of a thunderstorm. Light winds.",
+			"icon_descriptor": "storm",
+			"short_text": "Showers. Possible storm.",
+			"surf_danger": null,
+			"fire_danger": "Moderate",
+			"fire_danger_category": {
+				"text": "Moderate",
+				"default_colour": "#64bf30",
+				"dark_mode_colour": "#64bf30"
+			}
+		},
+		{
+			"rain": {
+				"amount": {
+					"min": 1,
+					"max": 6,
+					"lower_range": 0,
+					"upper_range": 6,
+					"units": "mm"
+				},
+				"chance": 70,
+				"precipitation_amount_25_percent_chance": 6,
+				"precipitation_amount_50_percent_chance": 1,
+				"precipitation_amount_75_percent_chance": 0
+			},
+			"uv": {
+				"category": "extreme",
+				"end_time": "2022-10-10T06:50:00Z",
+				"max_index": 14,
+				"start_time": "2022-10-09T23:10:00Z"
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-09T20:55:46Z",
+				"sunset_time": "2022-10-10T09:14:06Z"
+			},
+			"date": "2022-10-09T14:30:00Z",
+			"temp_max": 35,
+			"temp_min": 25,
+			"extended_text": "Partly cloudy. High chance of showers, most likely in the morning. The chance of a thunderstorm. Light winds becoming northwest to northeasterly 15 to 20 km/h during the afternoon then becoming light during the evening.",
+			"icon_descriptor": "storm",
+			"short_text": "Shower or two. Possible storm.",
+			"surf_danger": null,
+			"fire_danger": "High",
+			"fire_danger_category": {
+				"text": "High",
+				"default_colour": "#fedd3a",
+				"dark_mode_colour": "#fedd3a"
+			}
+		},
+		{
+			"rain": {
+				"amount": {
+					"min": 2,
+					"max": 8,
+					"lower_range": 0,
+					"upper_range": 8,
+					"units": "mm"
+				},
+				"chance": 70,
+				"precipitation_amount_25_percent_chance": 8,
+				"precipitation_amount_50_percent_chance": 2,
+				"precipitation_amount_75_percent_chance": 0
+			},
+			"uv": {
+				"category": null,
+				"end_time": null,
+				"max_index": null,
+				"start_time": null
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-10T20:55:09Z",
+				"sunset_time": "2022-10-11T09:14:10Z"
+			},
+			"date": "2022-10-10T14:30:00Z",
+			"temp_max": 33,
+			"temp_min": 25,
+			"extended_text": "Partly cloudy. High chance of showers, most likely during the morning. The chance of a thunderstorm. Light winds becoming west to northwesterly 15 to 20 km/h during the day.",
+			"icon_descriptor": "storm",
+			"short_text": "Shower or two. Possible storm.",
+			"surf_danger": null,
+			"fire_danger": null,
+			"fire_danger_category": {
+				"text": null,
+				"default_colour": null,
+				"dark_mode_colour": null
+			}
+		},
+		{
+			"rain": {
+				"amount": {
+					"min": 3,
+					"max": 8,
+					"lower_range": 0,
+					"upper_range": 8,
+					"units": "mm"
+				},
+				"chance": 70,
+				"precipitation_amount_25_percent_chance": 8,
+				"precipitation_amount_50_percent_chance": 3,
+				"precipitation_amount_75_percent_chance": 0
+			},
+			"uv": {
+				"category": null,
+				"end_time": null,
+				"max_index": null,
+				"start_time": null
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-11T20:54:33Z",
+				"sunset_time": "2022-10-12T09:14:15Z"
+			},
+			"date": "2022-10-11T14:30:00Z",
+			"temp_max": 33,
+			"temp_min": 25,
+			"extended_text": "Partly cloudy. High chance of showers, most likely during the morning. The chance of a thunderstorm. Light winds becoming westerly 15 to 20 km/h during the day.",
+			"icon_descriptor": "storm",
+			"short_text": "Shower or two. Possible storm.",
+			"surf_danger": null,
+			"fire_danger": null,
+			"fire_danger_category": {
+				"text": null,
+				"default_colour": null,
+				"dark_mode_colour": null
+			}
+		},
+		{
+			"rain": {
+				"amount": {
+					"min": 1,
+					"max": 4,
+					"lower_range": 0,
+					"upper_range": 4,
+					"units": "mm"
+				},
+				"chance": 60,
+				"precipitation_amount_25_percent_chance": 4,
+				"precipitation_amount_50_percent_chance": 1,
+				"precipitation_amount_75_percent_chance": 0
+			},
+			"uv": {
+				"category": null,
+				"end_time": null,
+				"max_index": null,
+				"start_time": null
+			},
+			"astronomical": {
+				"sunrise_time": "2022-10-12T20:53:57Z",
+				"sunset_time": "2022-10-13T09:14:20Z"
+			},
+			"date": "2022-10-12T14:30:00Z",
+			"temp_max": 33,
+			"temp_min": 26,
+			"extended_text": "Partly cloudy. Medium chance of showers. The chance of a thunderstorm. Light winds.",
+			"icon_descriptor": "storm",
+			"short_text": "Shower or two. Possible storm.",
+			"surf_danger": null,
+			"fire_danger": null,
+			"fire_danger_category": {
+				"text": null,
+				"default_colour": null,
+				"dark_mode_colour": null
+			}
+		}
+	],
+	"metadata": {
+		"response_timestamp": "2022-10-07T00:25:37Z",
+		"issue_time": "2022-10-07T00:00:16Z",
+		"next_issue_time": "2022-10-07T06:30:00Z",
+		"forecast_region": "Darwin",
+		"forecast_type": "precis",
+		"copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+	}
+}
+```
+
+## Hourly forecasts
+
+This returns the hourly forecasts for the given geohash.
+
+https://api.weather.bom.gov.au/v1/locations/{geohas}/forecasts/hourly
+
+```json
 {
 	"metadata": {
 		"issue_time": "2022-10-07T00:05:13Z",
@@ -1832,3 +2240,4 @@
 		}
 	]
 }
+```
