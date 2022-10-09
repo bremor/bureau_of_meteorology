@@ -2280,3 +2280,28 @@ https://api.weather.bom.gov.au/v1/locations/{geohash}/warnings
   }
 }
 ```
+
+Once you have the warning summary it is possible to get detailed info for the warning using this url.
+
+https://api.weather.bom.gov.au/v1/warnings/{id}
+
+```json
+{
+  "metadata": {
+    "issue_time": "2022-10-09T00:00:41Z",
+    "response_timestamp": "2022-10-09T00:03:12Z",
+    "copyright": "This Application Programming Interface (API) is owned by the Bureau of Meteorology (Bureau). You must not use, copy or share it. Please contact us for more information on ways in which you can access our data. Follow this link http://www.bom.gov.au/inside/contacts.shtml to view our contact details."
+  },
+  "data": {
+    "id": "NSW_RC072_IDN36627",
+    "type": "flood_warning",
+    "title": "Flood Warning for Molonglo River",
+    "short_title": "Flood Warning",
+    "state": "NSW",
+    "message": "<div class=\"product\">\n<p class=\"p-id\">IDN36627</p>Australian Government Bureau of Meteorology<h2>Minor Flood Warning for the Queanbeyan and Molonglo Rivers</h2>\n<p class=\"date\">Issued at 11:00 am EDT on Sunday 9 October 2022</p>\n<p>Flood Warning Number: 3</p>\n<p>MINOR FLOODING OCCURRING AT QUEANBEYAN AND OAKS ESTATE</p>\n<p>Heavy rainfall in the last several days in the Queanbeyan and  Molonglo River catchments have caused stream rises, and minor flooding is occurring in the Queanbeyan River at Queens Bridge and Molonglo River at Oaks Estate.</p>\n<p>Some further rainfall is possible during Sunday, and higher levels may occur.</p>\n<h3>Queanbeyan River:</h3>\n<p class=\"sl\">Minor flooding is occurring along the Queanbeyan River.</p>\n<p>The Queanbeyan River at Queens Bridge may peak near 5.00 metres around 02:00 pm Sunday, with minor flooding.</p>\n<h3>Molonglo River:</h3>\n<p class=\"sl\">Minor flooding is occurring along the Molonglo River.</p>\n<p>The Molonglo River at Oaks Estate may peak near 5.50 metres around midday Sunday, with minor flooding.</p>\n<h3>Flood Safety Advice:</h3>\n<p>In life threatening emergencies, call 000 (triple zero) immediately. If you require rescue, assistance to evacuate or other emergency help, ring NSW SES on 132 500.</p>\n<ul>\n<li>* Avoid drowning. Stay out of rising water, seek refuge in the highest available place.</li>\n<li>* Prevent damage to your vehicle. Move it under cover, away from areas likely to flood.</li>\n<li>* Avoid being swept away. Stay out of fast-flowing creeks and storm drains.</li>\n<li>* Never drive, ride or walk through flood water. Flood water can be deceptive and dangerous.</li>\n</ul>\n<p>For more emergency information, advice, and access to the latest river heights and rainfall observations and forecasts:</p>\n<p>* NSW SES: <a href=\"http://www.ses.nsw.gov.au\">www.ses.nsw.gov.au</a> </p>\n<p>* ACT SES: <a href=\"http://www.esa.act.gov.au/actses/\">www.esa.act.gov.au/actses/</a> </p>\n<p>* RMS Live Traffic: <a href=\"http://www.livetraffic.com\">www.livetraffic.com</a> </p>\n<p>* Latest River Heights and Rainfall Observations: <a href=\"http://www.bom.gov.au/nsw/flood/southwest.shtml\">www.bom.gov.au/nsw/flood/southwest.shtml</a> </p>\n<p>* Latest NSW Warnings: <a href=\"http://www.bom.gov.au/nsw/warnings/\">www.bom.gov.au/nsw/warnings/</a> </p>\n<p>* Rainfall Forecasts: <a href=\"http://www.bom.gov.au/australia/meteye/\">www.bom.gov.au/australia/meteye/</a> </p>\n<p>* BOM NSW Twitter: <a href=\"http://www.twitter.com/BOM_NSW\">www.twitter.com/BOM_NSW</a> </p>\n<p>* BOM ACT Twitter: <a href=\"http://www.twitter.com/BOM_ACT\">www.twitter.com/BOM_ACT</a> </p>\n<h3>Next Issue:</h3>\n<p>The next warning will be issued by 12:00 pm EDT on Monday 10 October 2022.</p>\n<h3>Latest River Heights:</h3>\n<table summary=\"This table contains recent observations of River Heights. There are four columns, the first gives the location of the river gauge, the second gives the river height, the third gives the current tendency of the river level and the fourth gives the time and date of the observation.\">\n<thead>\n<tr>\n<th>Location</th>\n<th>Height of River (m) </th>\n<th>Tendency</th>\n<th>Date/Time of Observation</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td align=\"left\" scope=\"row\">Queanbeyan River at Tinderry</td>\n<td align=\"left\" scope=\"row\">2.86</td>\n<td align=\"left\" scope=\"row\">Falling</td>\n<td align=\"left\" scope=\"row\">10:56 AM SUN 09/10/22</td>\n</tr>\n<tr>\n<td align=\"left\" scope=\"row\">Queanbeyan River at Wickerslack</td>\n<td align=\"left\" scope=\"row\">3.02</td>\n<td align=\"left\" scope=\"row\">Rising</td>\n<td align=\"left\" scope=\"row\">06:53 AM SUN 09/10/22</td>\n</tr>\n<tr>\n<td align=\"left\" scope=\"row\">Queanbeyan River at Queens Bridge</td>\n<td align=\"left\" scope=\"row\">4.55</td>\n<td align=\"left\" scope=\"row\">Steady</td>\n<td align=\"left\" scope=\"row\">10:15 AM SUN 09/10/22</td>\n</tr>\n<tr>\n<td align=\"left\" scope=\"row\">Molonglo River at Burbong</td>\n<td align=\"left\" scope=\"row\">1.99</td>\n<td align=\"left\" scope=\"row\">Rising</td>\n<td align=\"left\" scope=\"row\">07:44 AM SUN 09/10/22</td>\n</tr>\n</tbody>\n</table>\n<p>This advice is also available by dialling 1300 659 210. Warning, rainfall and river information are available at <a href=\"http://www.bom.gov.au/nsw/flood\">www.bom.gov.au/nsw/flood</a>. The latest weather forecast is available at <a href=\"http://www.bom.gov.au/nsw/forecasts\">www.bom.gov.au/nsw/forecasts</a>. </p>\n</div>\n",
+    "issue_time": "2022-10-09T00:00:41Z",
+    "expiry_time": "2022-10-12T00:00:41Z",
+    "phase": "renewal"
+  }
+}
+```
