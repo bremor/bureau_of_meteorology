@@ -2305,3 +2305,23 @@ https://api.weather.bom.gov.au/v1/warnings/{id}
   }
 }
 ```
+
+The warning data is not well understood at present. Below is a list of observed values for fields that have a defined set of values.
+
+### type
+- flood_watch
+- flood_warning
+- sheep_graziers_warning
+- severe_weather_warning
+- marine_wind_warning
+- hazardous_surf_warning
+- heatwave_warning
+
+### phase
+- update
+- renewal
+- final
+- cancelled
+
+### message
+contains a block of html with the outermost block being <div class="product">
