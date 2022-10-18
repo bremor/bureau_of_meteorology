@@ -2317,9 +2317,13 @@ The warning data is not well understood at present. Below is a list of observed 
 - hazardous_surf_warning
 - heatwave_warning
 
+### warning_group_type
+- major
+
 ### phase
 - update
 - renewal
+- downgrade
 - final
 - cancelled
 
