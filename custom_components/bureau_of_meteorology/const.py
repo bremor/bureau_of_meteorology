@@ -1,34 +1,37 @@
 """Constants for the BOM integration."""
 
+from typing import Final
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+)
+
 from homeassistant.const import (
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_TIMESTAMP,
     LENGTH_MILLIMETERS,
     PERCENTAGE,
     TEMP_CELSIUS,
 )
 
-ATTRIBUTION = "Data provided by the Australian Bureau of Meteorology"
-SHORT_ATTRIBUTION = "Australian Bureau of Meteorology"
-COLLECTOR = "collector"
-UPDATE_LISTENER = "update_listener"
+ATTRIBUTION: Final = "Data provided by the Australian Bureau of Meteorology"
+SHORT_ATTRIBUTION: Final = "Australian Bureau of Meteorology"
+COLLECTOR: Final = "collector"
+UPDATE_LISTENER: Final = "update_listener"
 
-CONF_WEATHER_NAME = "weather_name"
-CONF_FORECASTS_BASENAME = "forecasts_basename"
-CONF_FORECASTS_CREATE = "forecasts_create"
-CONF_FORECASTS_DAYS = "forecasts_days"
-CONF_FORECASTS_MONITORED = "forecasts_monitored"
-CONF_OBSERVATIONS_BASENAME = "observations_basename"
-CONF_OBSERVATIONS_CREATE = "observations_create"
-CONF_OBSERVATIONS_MONITORED = "observations_monitored"
-CONF_WARNINGS_CREATE = "warnings_create"
-CONF_WARNINGS_BASENAME = "warnings_basename"
+CONF_WEATHER_NAME: Final = "weather_name"
+CONF_FORECASTS_BASENAME: Final = "forecasts_basename"
+CONF_FORECASTS_CREATE: Final = "forecasts_create"
+CONF_FORECASTS_DAYS: Final = "forecasts_days"
+CONF_FORECASTS_MONITORED: Final = "forecasts_monitored"
+CONF_OBSERVATIONS_BASENAME: Final = "observations_basename"
+CONF_OBSERVATIONS_CREATE: Final = "observations_create"
+CONF_OBSERVATIONS_MONITORED: Final = "observations_monitored"
+CONF_WARNINGS_CREATE: Final = "warnings_create"
+CONF_WARNINGS_BASENAME: Final = "warnings_basename"
 
-COORDINATOR = "coordinator"
-DOMAIN = "bureau_of_meteorology"
+COORDINATOR: Final = "coordinator"
+DOMAIN: Final = "bureau_of_meteorology"
 
-MAP_CONDITION = {
+MAP_CONDITION: Final = {
     "clear": "clear-night",
     "cloudy": "cloudy",
     "cyclone": "exceptional",
@@ -58,39 +61,39 @@ MAP_CONDITION = {
     None: None,
 }
 
-SENSOR_NAMES = {
-    "temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "temp_feels_like": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "max_temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "min_temp": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "rain_since_9am": [LENGTH_MILLIMETERS, None],
-    "humidity": [PERCENTAGE, DEVICE_CLASS_HUMIDITY],
-    "wind_speed_kilometre": ["km/h", None],
-    "wind_speed_knot": ["kts", None],
+SENSOR_NAMES: Final = {
+    "temp": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
+    "temp_feels_like": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
+    "max_temp": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
+    "min_temp": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
+    "rain_since_9am": [LENGTH_MILLIMETERS, SensorDeviceClass.DISTANCE],
+    "humidity": [PERCENTAGE, SensorDeviceClass.HUMIDITY],
+    "wind_speed_kilometre": ["km/h", SensorDeviceClass.SPEED],
+    "wind_speed_knot": ["kn", SensorDeviceClass.SPEED],
     "wind_direction": [None, None],
-    "gust_speed_kilometre": ["km/h", None],
-    "gust_speed_knot": ["kts", None],
-    "temp_max": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "temp_min": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "gust_speed_kilometre": ["km/h", SensorDeviceClass.SPEED],
+    "gust_speed_knot": ["kn", SensorDeviceClass.SPEED],
+    "temp_max": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
+    "temp_min": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
     "extended_text": [None, None],
     "icon_descriptor": [None, None],
     "mdi_icon": [None, None],
     "short_text": [None, None],
     "uv_category": [None, None],
     "uv_max_index": ["UV", None],
-    "uv_start_time": [None, DEVICE_CLASS_TIMESTAMP],
-    "uv_end_time": [None, DEVICE_CLASS_TIMESTAMP],
+    "uv_start_time": [None, SensorDeviceClass.TIMESTAMP],
+    "uv_end_time": [None, SensorDeviceClass.TIMESTAMP],
     "uv_forecast": [None, None],
-    "rain_amount_min": [LENGTH_MILLIMETERS, None],
-    "rain_amount_max": [LENGTH_MILLIMETERS, None],
-    "rain_amount_range": [LENGTH_MILLIMETERS, None],
+    "rain_amount_min": [LENGTH_MILLIMETERS, SensorDeviceClass.DISTANCE],
+    "rain_amount_max": [LENGTH_MILLIMETERS, SensorDeviceClass.DISTANCE],
+    "rain_amount_range": [LENGTH_MILLIMETERS, SensorDeviceClass.DISTANCE],
     "rain_chance": [PERCENTAGE, None],
     "fire_danger": [None, None],
     "now_now_label": [None, None],
-    "now_temp_now": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
+    "now_temp_now": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
     "now_later_label": [None, None],
-    "now_temp_later": [TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "astronomical_sunrise_time": [None, DEVICE_CLASS_TIMESTAMP],
-    "astronomical_sunset_time": [None, DEVICE_CLASS_TIMESTAMP],
+    "now_temp_later": [TEMP_CELSIUS, SensorDeviceClass.TEMPERATURE],
+    "astronomical_sunrise_time": [None, SensorDeviceClass.TIMESTAMP],
+    "astronomical_sunset_time": [None, SensorDeviceClass.TIMESTAMP],
     "warnings": [None, None],
 }
