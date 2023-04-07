@@ -6,15 +6,17 @@ from typing import Any
 import iso8601
 import pytz
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_DATE,
     ATTR_STATE,
-    DEVICE_CLASS_TIMESTAMP,
 )
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo, Entity, EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pytz import timezone
 
@@ -33,8 +35,15 @@ from .const import (
     CONF_WARNINGS_CREATE,
     COORDINATOR,
     DOMAIN,
-    SENSOR_NAMES,
+    # SENSOR_NAMES,
     SHORT_ATTRIBUTION,
+    OBSERVATION_SENSOR_TYPES,
+    FORECAST_SENSOR_TYPES,
+    WARNING_SENSOR_TYPES,
+    ATTR_API_NON_NOW_LABEL,
+    ATTR_API_NON_TEMP_NOW,
+    ATTR_API_NOW_LATER_LABEL,
+    ATTR_API_NOW_TEMP_LATER,
 )
 from .PyBoM.collector import Collector
 
@@ -76,6 +85,11 @@ async def async_setup_entry(
                     hass_data,
                     observation_basename,
                     observation,
+                    [
+                        description
+                        for description in OBSERVATION_SENSOR_TYPES
+                        if description.key == observation
+                    ][0],
                 )
             )
 
@@ -93,10 +107,10 @@ async def async_setup_entry(
         for day in range(0, forecast_days + 1):
             for forecast in forecasts_monitored:
                 if forecast in [
-                    "now_now_label",
-                    "now_temp_now",
-                    "now_later_label",
-                    "now_temp_later",
+                    ATTR_API_NON_NOW_LABEL,
+                    ATTR_API_NON_TEMP_NOW,
+                    ATTR_API_NOW_LATER_LABEL,
+                    ATTR_API_NOW_TEMP_LATER,
                 ]:
                     if day == 0:
                         new_entities.append(
@@ -104,6 +118,11 @@ async def async_setup_entry(
                                 hass_data,
                                 forecast_basename,
                                 forecast,
+                                [
+                                    description
+                                    for description in FORECAST_SENSOR_TYPES
+                                    if description.key == forecast
+                                ][0],
                             )
                         )
                 else:
@@ -113,6 +132,11 @@ async def async_setup_entry(
                             forecast_basename,
                             day,
                             forecast,
+                            [
+                                description
+                                for description in FORECAST_SENSOR_TYPES
+                                if description.key == forecast
+                            ][0],
                         )
                     )
 
@@ -130,23 +154,34 @@ async def async_setup_entry(
 
         if warnings_basename is not None:
             new_entities.append(
-                WarningsSensor(hass_data, warnings_basename, "warnings")
+                WarningsSensor(
+                    hass_data, 
+                    warnings_basename, 
+                    "warnings",
+                    [
+                        description
+                        for description in WARNING_SENSOR_TYPES
+                        if description.key == "warnings"
+                    ][0],
+                )
             )
 
     if new_entities:
         async_add_entities(new_entities, update_before_add=False)
 
 
-class SensorBase(Entity):
+class SensorBase(CoordinatorEntity[BomDataUpdateCoordinator], SensorEntity):
     """Base representation of a BOM Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name) -> None:
+    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,) -> None:
         """Initialize the sensor."""
+        super().__init__(hass_data[COORDINATOR])
         self.collector: Collector = hass_data[COLLECTOR]
         self.coordinator: BomDataUpdateCoordinator = hass_data[COORDINATOR]
         self.location_name: str = location_name
         self.sensor_name: str = sensor_name
         self.current_state: Any = None
+        self.entity_description = description
 
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
@@ -170,15 +205,15 @@ class SensorBase(Entity):
         """Entities do not individually poll."""
         return False
 
-    @property
-    def device_class(self):
-        """Return the name of the sensor."""
-        return SENSOR_NAMES[self.sensor_name][1]
+    # @property
+    # def device_class(self):
+    #     """Return the name of the sensor."""
+    #     return SENSOR_NAMES[self.sensor_name][1]
 
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return SENSOR_NAMES[self.sensor_name][0]
+    # @property
+    # def unit_of_measurement(self):
+    #     """Return the unit of measurement."""
+    #     return SENSOR_NAMES[self.sensor_name][0]
 
     async def async_update(self):
         """Refresh the data on the collector object."""
@@ -188,14 +223,21 @@ class SensorBase(Entity):
 class ObservationSensor(SensorBase):
     """Representation of a BOM Observation Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name) -> None:
+    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,) -> None:
         """Initialize the sensor."""
-        super().__init__(hass_data, location_name, sensor_name)
+        super().__init__(hass_data, location_name, sensor_name, description)
 
     @property
     def unique_id(self):
         """Return Unique ID string."""
         return f"{self.location_name}_{self.sensor_name}"
+
+    # @property
+    # def native_value(self):
+    #     """Return the state of the device."""
+    #     _LOGGER.debug(f"Native value: {self.entity_description.key}")
+    #     _LOGGER.debug(f"Coordinator: {self.coordinator.data}")
+    #     return self.coordinator.data.get(self.entity_description.key)
 
     @property
     def extra_state_attributes(self):
@@ -215,18 +257,18 @@ class ObservationSensor(SensorBase):
             attr["time_observed"] = iso8601.parse_date(self.collector.observations_data["data"][self.sensor_name]["time"]).astimezone(tzinfo).isoformat()
         return attr
 
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-        if self.sensor_name in self.collector.observations_data["data"]:
-            if self.collector.observations_data["data"][self.sensor_name] is not None:
-                if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
-                    self.current_state = self.collector.observations_data["data"][self.sensor_name]["value"]
-                else:
-                    self.current_state = self.collector.observations_data["data"][self.sensor_name]
-            else:
-                self.current_state = "unavailable"
-        return self.current_state
+    # @property
+    # def state(self):
+    #     """Return the state of the sensor."""
+    #     if self.sensor_name in self.collector.observations_data["data"]:
+    #         if self.collector.observations_data["data"][self.sensor_name] is not None:
+    #             if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
+    #                 self.current_state = self.collector.observations_data["data"][self.sensor_name]["value"]
+    #             else:
+    #                 self.current_state = self.collector.observations_data["data"][self.sensor_name]
+    #         else:
+    #             self.current_state = "unavailable"
+    #     return self.current_state
 
     @property
     def name(self):
@@ -237,15 +279,20 @@ class ObservationSensor(SensorBase):
 class ForecastSensor(SensorBase):
     """Representation of a BOM Forecast Sensor."""
 
-    def __init__(self, hass_data, location_name, day, sensor_name):
+    def __init__(self, hass_data, location_name, day, sensor_name, description: SensorEntityDescription,):
         """Initialize the sensor."""
         self.day = day
-        super().__init__(hass_data, location_name, sensor_name)
+        super().__init__(hass_data, location_name, sensor_name, description)
 
     @property
     def unique_id(self):
         """Return Unique ID string."""
         return f"{self.location_name}_{self.day}_{self.sensor_name}"
+
+    @property
+    def native_value(self):
+        """Return the state of the device."""
+        return self.coordinator.data.get(self.entity_description.key)
 
     @property
     def extra_state_attributes(self):
@@ -275,7 +322,7 @@ class ForecastSensor(SensorBase):
         """Return the state of the sensor."""
         # If there is no data for this day, return state as 'None'.
         if self.day < len(self.collector.daily_forecasts_data["data"]):
-            if self.device_class == DEVICE_CLASS_TIMESTAMP:
+            if self.device_class == SensorDeviceClass.TIMESTAMP:
                 tzinfo = pytz.timezone(
                     self.collector.locations_data["data"]["timezone"]
                 )
@@ -323,14 +370,19 @@ class ForecastSensor(SensorBase):
 class WarningsSensor(SensorBase):
     """Representation of a BOM Warnings Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name):
+    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,):
         """Initialize the sensor."""
-        super().__init__(hass_data, location_name, sensor_name)
+        super().__init__(hass_data, location_name, sensor_name, description)
 
     @property
     def unique_id(self):
         """Return Unique ID string."""
         return f"{self.location_name}_{self.sensor_name}"
+
+    @property
+    def native_value(self):
+        """Return the state of the device."""
+        return self.coordinator.data.get(self.entity_description.key)
 
     @property
     def extra_state_attributes(self):
@@ -355,14 +407,19 @@ class WarningsSensor(SensorBase):
 class NowLaterSensor(SensorBase):
     """Representation of a BOM Forecast Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name):
+    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,):
         """Initialize the sensor."""
-        super().__init__(hass_data, location_name, sensor_name)
+        super().__init__(hass_data, location_name, sensor_name, description)
 
     @property
     def unique_id(self):
         """Return Unique ID string."""
         return f"{self.location_name}_{self.sensor_name}"
+
+    @property
+    def native_value(self):
+        """Return the state of the device."""
+        return self.coordinator.data.get(self.entity_description.key)
 
     @property
     def extra_state_attributes(self):

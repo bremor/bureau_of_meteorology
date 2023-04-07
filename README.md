@@ -34,6 +34,9 @@ logger:
 2. All feature requests, issues and questions are welcome.
 
 ## Release Notes
+### 1.1.19 - Updates to keep up with HA
+  - Minor internal changes to sensors
+
 ### 1.1.18 - Fix observed min/max sensors
   - Fix a bug in the configuration of the observed min/max sensors (note that it may be necessary to remove and re-add the instance of the integration to correct)
 

@@ -28,7 +28,7 @@ class Collector:
         self.warnings_data = None
         self.geohash7 = geohash_encode(latitude, longitude)
         self.geohash6 = self.geohash7[:6]
-        _LOGGER.debug(f"Geohash: {self.geohash7}")
+        # _LOGGER.debug(f"Geohash: {self.geohash7}")
 
     async def get_locations_data(self):
         """Get JSON location name from BOM API endpoint."""
@@ -86,7 +86,7 @@ class Collector:
             if self.locations_data is None:
                 async with session.get(URL_BASE + self.geohash7) as resp:
                     self.locations_data = await resp.json()
-                    _LOGGER.debug(f"Locations data: {self.locations_data}")
+                    # _LOGGER.debug(f"Locations data: {self.locations_data}")
 
             async with session.get(URL_BASE + self.geohash6 + URL_OBSERVATIONS) as resp:
                 self.observations_data = await resp.json()
@@ -101,19 +101,18 @@ class Collector:
                 else:
                     self.observations_data["data"]["gust_speed_kilometre"] = "unavailable"
                     self.observations_data["data"]["gust_speed_knot"] = "unavailable"
-                _LOGGER.debug(f"Observations data: {self.observations_data}")
+                # _LOGGER.debug(f"Observations data: {self.observations_data}")
 
             async with session.get(URL_BASE + self.geohash6 + URL_DAILY) as resp:
                 self.daily_forecasts_data = await resp.json()
                 await self.format_daily_forecast_data()
-                _LOGGER.debug(f"Forecasts data: {self.daily_forecasts_data}")
+                # _LOGGER.debug(f"Forecasts data: {self.daily_forecasts_data}")
 
             async with session.get(URL_BASE + self.geohash6 + URL_HOURLY) as resp:
                 self.hourly_forecasts_data = await resp.json()
                 await self.format_hourly_forecast_data()
-                _LOGGER.debug(
-                    f"Hourly Forecasts data: {self.hourly_forecasts_data}")
+                # _LOGGER.debug(f"Hourly Forecasts data: {self.hourly_forecasts_data}")
 
             async with session.get(URL_BASE + self.geohash6 + URL_WARNINGS) as resp:
                 self.warnings_data = await resp.json()
-                _LOGGER.debug(f"Warnings data: {self.warnings_data}")
+                # _LOGGER.debug(f"Warnings data: {self.warnings_data}")

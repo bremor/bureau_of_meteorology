@@ -19,6 +19,9 @@ from .const import (
     CONF_WARNINGS_CREATE,
     CONF_WEATHER_NAME,
     DOMAIN,
+    OBSERVATION_SENSOR_TYPES,
+    FORECAST_SENSOR_TYPES,
+    WARNING_SENSOR_TYPES,
 )
 from .PyBoM.collector import Collector
 
@@ -152,19 +155,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_observations_monitored(self, user_input=None):
         """Handle the observations monitored step."""
-        monitored = {
-            "temp": "Temperature",
-            "temp_feels_like": "Temperature Feels Like",
-            "max_temp": "Temperature Max",
-            "min_temp": "Temperature Min",
-            "rain_since_9am": "Rain Since 9AM",
-            "humidity": "Humidity",
-            "wind_speed_kilometre": "Wind Speed Kilometre",
-            "wind_speed_knot": "Wind Speed Knot",
-            "wind_direction": "Wind Direction",
-            "gust_speed_kilometre": "Gust Speed Kilometre",
-            "gust_speed_knot": "Gust Speed Knot",
-        }
+        monitored = {}
+        for sensor in OBSERVATION_SENSOR_TYPES:
+            monitored[sensor.key] = sensor.name
+        # monitored = {
+        #     "temp": "Temperature",
+        #     "temp_feels_like": "Temperature Feels Like",
+        #     "max_temp": "Temperature Max",
+        #     "min_temp": "Temperature Min",
+        #     "rain_since_9am": "Rain Since 9AM",
+        #     "humidity": "Humidity",
+        #     "wind_speed_kilometre": "Wind Speed Kilometre",
+        #     "wind_speed_knot": "Wind Speed Knot",
+        #     "wind_direction": "Wind Direction",
+        #     "gust_speed_kilometre": "Gust Speed Kilometre",
+        #     "gust_speed_knot": "Gust Speed Knot",
+        # }
 
         data_schema = vol.Schema(
             {
@@ -205,30 +211,33 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_forecasts_monitored(self, user_input=None):
         """Handle the forecasts monitored step."""
-        monitored = {
-            "temp_max": "Max. Temperature",
-            "temp_min": "Min. Temperature",
-            "extended_text": "Extended Text",
-            "icon_descriptor": "Icon Descriptor",
-            "mdi_icon": "MDI Icon",
-            "short_text": "Short Text",
-            "uv_category": "UV Category",
-            "uv_max_index": "UV Max Index",
-            "uv_start_time": "UV Protection Start Time",
-            "uv_end_time": "UV Protection End Time",
-            "uv_forecast": "UV Forecast Summary",
-            "rain_amount_min": "Rain Amount Min.",
-            "rain_amount_max": "Rain Amount Max.",
-            "rain_amount_range": "Rain Amount Range",
-            "rain_chance": "Rain Chance",
-            "fire_danger": "Fire Danger",
-            "now_now_label": "Now Now Label",
-            "now_temp_now": "Now Temp Now",
-            "now_later_label": "Now Later Label",
-            "now_temp_later": "Now Temp Later",
-            "astronomical_sunrise_time": "Sunrise Time",
-            "astronomical_sunset_time": "Sunset Time",
-        }
+        monitored = {}
+        for sensor in FORECAST_SENSOR_TYPES:
+            monitored[sensor.key] = sensor.name
+        # monitored = {
+        #     "temp_max": "Max. Temperature",
+        #     "temp_min": "Min. Temperature",
+        #     "extended_text": "Extended Text",
+        #     "icon_descriptor": "Icon Descriptor",
+        #     "mdi_icon": "MDI Icon",
+        #     "short_text": "Short Text",
+        #     "uv_category": "UV Category",
+        #     "uv_max_index": "UV Max Index",
+        #     "uv_start_time": "UV Protection Start Time",
+        #     "uv_end_time": "UV Protection End Time",
+        #     "uv_forecast": "UV Forecast Summary",
+        #     "rain_amount_min": "Rain Amount Min.",
+        #     "rain_amount_max": "Rain Amount Max.",
+        #     "rain_amount_range": "Rain Amount Range",
+        #     "rain_chance": "Rain Chance",
+        #     "fire_danger": "Fire Danger",
+        #     "now_now_label": "Now Now Label",
+        #     "now_temp_now": "Now Temp Now",
+        #     "now_later_label": "Now Later Label",
+        #     "now_temp_later": "Now Temp Later",
+        #     "astronomical_sunrise_time": "Sunrise Time",
+        #     "astronomical_sunset_time": "Sunset Time",
+        # }
 
         data_schema = vol.Schema(
             {
@@ -457,19 +466,22 @@ class BomOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_observations_monitored(self, user_input=None):
         """Handle the observations monitored step."""
-        monitored = {
-            "temp": "Temperature",
-            "temp_feels_like": "Temperature Feels Like",
-            "max_temp": "Temperature Max",
-            "min_temp": "Temperature Min",
-            "rain_since_9am": "Rain Since 9AM",
-            "humidity": "Humidity",
-            "wind_speed_kilometre": "Wind Speed Kilometre",
-            "wind_speed_knot": "Wind Speed Knot",
-            "wind_direction": "Wind Direction",
-            "gust_speed_kilometre": "Gust Speed Kilometre",
-            "gust_speed_knot": "Gust Speed Knot",
-        }
+        monitored = {}
+        for sensor in OBSERVATION_SENSOR_TYPES:
+            monitored[sensor.key] = sensor.name
+        # monitored = {
+        #     "temp": "Temperature",
+        #     "temp_feels_like": "Temperature Feels Like",
+        #     "max_temp": "Temperature Max",
+        #     "min_temp": "Temperature Min",
+        #     "rain_since_9am": "Rain Since 9AM",
+        #     "humidity": "Humidity",
+        #     "wind_speed_kilometre": "Wind Speed Kilometre",
+        #     "wind_speed_knot": "Wind Speed Knot",
+        #     "wind_direction": "Wind Direction",
+        #     "gust_speed_kilometre": "Gust Speed Kilometre",
+        #     "gust_speed_knot": "Gust Speed Knot",
+        # }
 
         data_schema = vol.Schema(
             {
@@ -522,30 +534,33 @@ class BomOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_forecasts_monitored(self, user_input=None):
         """Handle the forecasts monitored step."""
-        monitored = {
-            "temp_max": "Max. Temperature",
-            "temp_min": "Min. Temperature",
-            "extended_text": "Extended Text",
-            "icon_descriptor": "Icon Descriptor",
-            "mdi_icon": "MDI Icon",
-            "short_text": "Short Text",
-            "uv_category": "UV Category",
-            "uv_max_index": "UV Max Index",
-            "uv_start_time": "UV Protection Start Time",
-            "uv_end_time": "UV Protection End Time",
-            "uv_forecast": "UV Forecast Summary",
-            "rain_amount_min": "Rain Amount Min.",
-            "rain_amount_max": "Rain Amount Max.",
-            "rain_amount_range": "Rain Amount Range",
-            "rain_chance": "Rain Chance",
-            "fire_danger": "Fire Danger",
-            "now_now_label": "Now Now Label",
-            "now_temp_now": "Now Temp Now",
-            "now_later_label": "Now Later Label",
-            "now_temp_later": "Now Temp Later",
-            "astronomical_sunrise_time": "Sunrise Time",
-            "astronomical_sunset_time": "Sunset Time",
-        }
+        monitored = {}
+        for sensor in FORECAST_SENSOR_TYPES:
+            monitored[sensor.key] = sensor.name
+        # monitored = {
+        #     "temp_max": "Max. Temperature",
+        #     "temp_min": "Min. Temperature",
+        #     "extended_text": "Extended Text",
+        #     "icon_descriptor": "Icon Descriptor",
+        #     "mdi_icon": "MDI Icon",
+        #     "short_text": "Short Text",
+        #     "uv_category": "UV Category",
+        #     "uv_max_index": "UV Max Index",
+        #     "uv_start_time": "UV Protection Start Time",
+        #     "uv_end_time": "UV Protection End Time",
+        #     "uv_forecast": "UV Forecast Summary",
+        #     "rain_amount_min": "Rain Amount Min.",
+        #     "rain_amount_max": "Rain Amount Max.",
+        #     "rain_amount_range": "Rain Amount Range",
+        #     "rain_chance": "Rain Chance",
+        #     "fire_danger": "Fire Danger",
+        #     "now_now_label": "Now Now Label",
+        #     "now_temp_now": "Now Temp Now",
+        #     "now_later_label": "Now Later Label",
+        #     "now_temp_later": "Now Temp Later",
+        #     "astronomical_sunrise_time": "Sunrise Time",
+        #     "astronomical_sunset_time": "Sunset Time",
+        # }
 
         data_schema = vol.Schema(
             {
