@@ -1,13 +1,13 @@
 # Bureau of Meteorology Custom Component
 
-### **This integration only supports locations within Australia.**
-
-This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http://www.bom.gov.au) as a source for weather information. This grabs data from an undocumented API that is used to provide data to https://weather.bom.gov.au/
-
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE.md)
 ![Maintenance](https://img.shields.io/maintenance/yes/2023?style=for-the-badge)
+
+### **This integration only supports locations within Australia.**
+
+This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http://www.bom.gov.au) as a source for weather information.
 
 ## Installation (There are two methods, with HACS or manual)
 
