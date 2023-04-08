@@ -1,6 +1,7 @@
 {
   "domain": "bureau_of_meteorology",
   "name": "Bureau of Meteorology",
+  "integration_type": "service",
   "config_flow": true,
   "documentation": "https://github.com/bremor/bureau_of_meteorology",
   "issue_tracker": "https://github.com/bremor/bureau_of_meteorology/issues",
@@ -10,5 +11,5 @@
   "homekit": {},
   "dependencies": [],
   "version": "1.1.19",
-  "codeowners": ["@bremor"]
+  "codeowners": ["@bremor,@makin-things"]
 }
