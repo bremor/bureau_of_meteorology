@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["sensor", "weather"]
 
-DEFAULT_SCAN_INTERVAL = datetime.timedelta(minutes=10)
+DEFAULT_SCAN_INTERVAL = datetime.timedelta(minutes=5)
 DEBOUNCE_TIME = 60  # in seconds
 
 

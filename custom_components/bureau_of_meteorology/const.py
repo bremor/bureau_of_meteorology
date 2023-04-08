@@ -146,14 +146,14 @@ OBSERVATION_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key=ATTR_API_WIND_SPEED,
+        key=ATTR_API_WIND_SPEED_KILOMETRE,
         name="Wind Speed km/h",
         native_unit_of_measurement=SPEED_KILOMETERS_PER_HOUR,
         device_class=SensorDeviceClass.WIND_SPEED,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key=ATTR_API_WIND_SPEED,
+        key=ATTR_API_WIND_SPEED_KNOT,
         name="Wind Speed kn",
         native_unit_of_measurement=SPEED_KNOTS,
         device_class=SensorDeviceClass.WIND_SPEED,
@@ -166,14 +166,14 @@ OBSERVATION_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key=ATTR_API_WIND_MAX_SPEED,
+        key=ATTR_API_GUST_SPEED_KILOMETRE,
         name="Gust Speed km/h",
         native_unit_of_measurement=SPEED_KILOMETERS_PER_HOUR,
         device_class=SensorDeviceClass.WIND_SPEED,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        key=ATTR_API_WIND_MAX_SPEED,
+        key=ATTR_API_GUST_SPEED_KNOT,
         name="Gust Speed kn",
         native_unit_of_measurement=SPEED_KNOTS,
         device_class=SensorDeviceClass.WIND_SPEED,

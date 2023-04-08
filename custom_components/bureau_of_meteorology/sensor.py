@@ -35,7 +35,6 @@ from .const import (
     CONF_WARNINGS_CREATE,
     COORDINATOR,
     DOMAIN,
-    # SENSOR_NAMES,
     SHORT_ATTRIBUTION,
     OBSERVATION_SENSOR_TYPES,
     FORECAST_SENSOR_TYPES,
@@ -205,16 +204,6 @@ class SensorBase(CoordinatorEntity[BomDataUpdateCoordinator], SensorEntity):
         """Entities do not individually poll."""
         return False
 
-    # @property
-    # def device_class(self):
-    #     """Return the name of the sensor."""
-    #     return SENSOR_NAMES[self.sensor_name][1]
-
-    # @property
-    # def unit_of_measurement(self):
-    #     """Return the unit of measurement."""
-    #     return SENSOR_NAMES[self.sensor_name][0]
-
     async def async_update(self):
         """Refresh the data on the collector object."""
         await self.collector.async_update()
@@ -223,7 +212,7 @@ class SensorBase(CoordinatorEntity[BomDataUpdateCoordinator], SensorEntity):
 class ObservationSensor(SensorBase):
     """Representation of a BOM Observation Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,) -> None:
+    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,):
         """Initialize the sensor."""
         super().__init__(hass_data, location_name, sensor_name, description)
 
@@ -232,12 +221,10 @@ class ObservationSensor(SensorBase):
         """Return Unique ID string."""
         return f"{self.location_name}_{self.sensor_name}"
 
-    # @property
-    # def native_value(self):
-    #     """Return the state of the device."""
-    #     _LOGGER.debug(f"Native value: {self.entity_description.key}")
-    #     _LOGGER.debug(f"Coordinator: {self.coordinator.data}")
-    #     return self.coordinator.data.get(self.entity_description.key)
+    @property
+    def native_value(self):
+        """Return the state of the device."""
+        return self.coordinator.data.get(self.entity_description.key)
 
     @property
     def extra_state_attributes(self):
@@ -257,18 +244,18 @@ class ObservationSensor(SensorBase):
             attr["time_observed"] = iso8601.parse_date(self.collector.observations_data["data"][self.sensor_name]["time"]).astimezone(tzinfo).isoformat()
         return attr
 
-    # @property
-    # def state(self):
-    #     """Return the state of the sensor."""
-    #     if self.sensor_name in self.collector.observations_data["data"]:
-    #         if self.collector.observations_data["data"][self.sensor_name] is not None:
-    #             if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
-    #                 self.current_state = self.collector.observations_data["data"][self.sensor_name]["value"]
-    #             else:
-    #                 self.current_state = self.collector.observations_data["data"][self.sensor_name]
-    #         else:
-    #             self.current_state = "unavailable"
-    #     return self.current_state
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        if self.sensor_name in self.collector.observations_data["data"]:
+            if self.collector.observations_data["data"][self.sensor_name] is not None:
+                if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
+                    self.current_state = self.collector.observations_data["data"][self.sensor_name]["value"]
+                else:
+                    self.current_state = self.collector.observations_data["data"][self.sensor_name]
+            else:
+                self.current_state = "unavailable"
+        return self.current_state
 
     @property
     def name(self):

@@ -7,7 +7,7 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE.md)
-![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
+![Maintenance](https://img.shields.io/maintenance/yes/2023?style=for-the-badge)
 
 ## Installation (There are two methods, with HACS or manual)
 
@@ -30,7 +30,7 @@ logger:
 ```
 
 ### Notes
-1. This integration will not refresh data faster than once every 10 minutes.
+1. This integration will not refresh data faster than once every 5 minutes.
 2. All feature requests, issues and questions are welcome.
 
 ## Release Notes
