@@ -36,6 +36,7 @@ from .const import (
     COORDINATOR,
     DOMAIN,
     SHORT_ATTRIBUTION,
+    MODEL_NAME,
     OBSERVATION_SENSOR_TYPES,
     FORECAST_SENSOR_TYPES,
     WARNING_SENSOR_TYPES,
@@ -186,6 +187,7 @@ class SensorBase(CoordinatorEntity[BomDataUpdateCoordinator], SensorEntity):
             entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, f"{self.location_name}")},
             manufacturer=SHORT_ATTRIBUTION,
+            model=MODEL_NAME,
             name=self.location_name,
         )
 

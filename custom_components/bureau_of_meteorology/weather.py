@@ -26,6 +26,7 @@ from .const import (
     DOMAIN,
     MAP_CONDITION,
     SHORT_ATTRIBUTION,
+    MODEL_NAME,
 )
 from .PyBoM.collector import Collector
 
@@ -65,6 +66,7 @@ class WeatherBase(WeatherEntity):
             entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, self.location_name)},
             manufacturer=SHORT_ATTRIBUTION,
+            model=MODEL_NAME,
             name=self.location_name,
         )
 

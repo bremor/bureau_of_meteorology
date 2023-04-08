@@ -19,6 +19,7 @@ from homeassistant.const import (
 
 ATTRIBUTION: Final = "Data provided by the Australian Bureau of Meteorology"
 SHORT_ATTRIBUTION: Final = "Australian Bureau of Meteorology"
+MODEL_NAME: Final = "Weather Sensor"
 COLLECTOR: Final = "collector"
 UPDATE_LISTENER: Final = "update_listener"
 
