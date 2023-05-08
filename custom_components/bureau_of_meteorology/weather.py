@@ -46,11 +46,10 @@ async def async_setup_entry(
     location_name = config_entry.options.get(
         CONF_WEATHER_NAME, config_entry.data.get(CONF_WEATHER_NAME, "Home")
     )
+    use_apparent = 'apparent' in location_name
 
-    new_entities.append(WeatherDaily(hass_data, location_name))
-    new_entities.append(WeatherHourly(hass_data, location_name))
-    new_entities.append(WeatherDaily(hass_data, location_name + "_apparent", True))
-    new_entities.append(WeatherHourly(hass_data, location_name + "_apparent", True))
+    new_entities.append(WeatherDaily(hass_data, location_name, use_apparent))
+    new_entities.append(WeatherHourly(hass_data, location_name, use_apparent))
 
     if new_entities:
         async_add_entities(new_entities, update_before_add=False)
