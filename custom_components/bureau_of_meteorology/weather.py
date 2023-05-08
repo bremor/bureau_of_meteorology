@@ -89,7 +89,7 @@ class WeatherBase(WeatherEntity):
     @property
     def native_temperature(self):
         """Return the platform temperature."""
-        return self.collector.observations_data["data"]["temp_feels_like"]
+        return self.collector.observations_data["data"]["temp"]
 
     @property
     def icon(self):
@@ -199,7 +199,7 @@ class WeatherHourly(WeatherBase):
         for hour in range(0, hours):
             forecast = {
                 "datetime": iso8601.parse_date(self.collector.hourly_forecasts_data["data"][hour]["time"]).astimezone(tzinfo).isoformat(),
-                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp_feels_like"],
+                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
                 "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
                 "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
                 "precipitation_probability": self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],

@@ -1,7 +1,5 @@
 # Bureau of Meteorology Custom Component
 
-### **Version to use apparent temperature.**
-
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE.md)
