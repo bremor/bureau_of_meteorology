@@ -49,6 +49,8 @@ async def async_setup_entry(
 
     new_entities.append(WeatherDaily(hass_data, location_name))
     new_entities.append(WeatherHourly(hass_data, location_name))
+    new_entities.append(WeatherDaily(hass_data, location_name + "_apparent", True))
+    new_entities.append(WeatherHourly(hass_data, location_name + "_apparent", True))
 
     if new_entities:
         async_add_entities(new_entities, update_before_add=False)
@@ -57,11 +59,12 @@ async def async_setup_entry(
 class WeatherBase(WeatherEntity):
     """Base representation of a BOM weather entity."""
 
-    def __init__(self, hass_data, location_name) -> None:
+    def __init__(self, hass_data, location_name, use_apparent=False) -> None:
         """Initialize the sensor."""
         self.collector: Collector = hass_data[COLLECTOR]
         self.coordinator: BomDataUpdateCoordinator = hass_data[COORDINATOR]
         self.location_name: str = location_name
+        self.use_apparent: bool = use_apparent
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, self.location_name)},
@@ -89,7 +92,7 @@ class WeatherBase(WeatherEntity):
     @property
     def native_temperature(self):
         """Return the platform temperature."""
-        return self.collector.observations_data["data"]["temp"]
+        return self.collector.observations_data["data"]["temp_feels_like" if self.use_apparent else "temp"]
 
     @property
     def icon(self):
@@ -133,6 +136,11 @@ class WeatherBase(WeatherEntity):
             self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]
         ]
 
+    @property
+    def use_apparent(self) -> bool:
+        """Use apparent values."""
+        return False
+
     async def async_update(self):
         await self.coordinator.async_update()
 
@@ -140,9 +148,9 @@ class WeatherBase(WeatherEntity):
 class WeatherDaily(WeatherBase):
     """Representation of a BOM weather entity."""
 
-    def __init__(self, hass_data, location_name):
+    def __init__(self, hass_data, location_name, use_apparent=False):
         """Initialize the sensor."""
-        super().__init__(hass_data, location_name)
+        super().__init__(hass_data, location_name, use_apparent)
 
     @property
     def name(self):
@@ -176,9 +184,9 @@ class WeatherDaily(WeatherBase):
 class WeatherHourly(WeatherBase):
     """Representation of a BOM hourly weather entity."""
 
-    def __init__(self, hass_data, location_name):
+    def __init__(self, hass_data, location_name, use_apparent=False):
         """Initialize the sensor."""
-        super().__init__(hass_data, location_name)
+        super().__init__(hass_data, location_name, use_apparent)
 
     @property
     def name(self):
@@ -199,7 +207,7 @@ class WeatherHourly(WeatherBase):
         for hour in range(0, hours):
             forecast = {
                 "datetime": iso8601.parse_date(self.collector.hourly_forecasts_data["data"][hour]["time"]).astimezone(tzinfo).isoformat(),
-                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
+                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp_feels_like" if self.use_apparent else "temp"],
                 "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
                 "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
                 "precipitation_probability": self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
