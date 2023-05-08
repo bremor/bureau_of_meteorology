@@ -63,7 +63,7 @@ class WeatherBase(WeatherEntity):
         self.collector: Collector = hass_data[COLLECTOR]
         self.coordinator: BomDataUpdateCoordinator = hass_data[COORDINATOR]
         self.location_name: str = location_name
-        self.use_apparent: bool = use_apparent
+        self._use_apparent: bool = use_apparent
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
             identifiers={(DOMAIN, self.location_name)},
@@ -138,7 +138,7 @@ class WeatherBase(WeatherEntity):
     @property
     def use_apparent(self) -> bool:
         """Use apparent values."""
-        return False
+        return self._use_apparent
 
     async def async_update(self):
         await self.coordinator.async_update()
