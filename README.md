@@ -34,6 +34,13 @@ logger:
 2. All feature requests, issues and questions are welcome.
 
 ## Release Notes
+
+### 1.1.21 - Fix for BOM breaking change
+  - A minor bug fix for the previous fix.
+
+### 1.1.20 - Fix for BOM breaking change
+  - A minor bug fix to make the integration work again after a BOM update.
+
 ### 1.1.19 - Updates to keep up with HA
   - Minor internal changes to sensors
 
