@@ -29,8 +29,8 @@ class Collector:
         self.geohash7 = geohash_encode(latitude, longitude)
         self.geohash6 = self.geohash7[:6]
 
-    headers={"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
     async def get_locations_data(self):
+        headers={"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
         """Get JSON location name from BOM API endpoint."""
         async with aiohttp.ClientSession(headers=headers) as session:
             response = await session.get(URL_BASE + self.geohash7)
