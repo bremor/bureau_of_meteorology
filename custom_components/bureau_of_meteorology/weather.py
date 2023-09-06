@@ -155,7 +155,7 @@ class WeatherDaily(WeatherBase):
         return self.location_name
 
     @property
-    def forecast(self):
+    def get_forecast(self):
         """Return the forecast."""
         forecasts = []
         days = len(self.collector.daily_forecasts_data["data"])
@@ -191,7 +191,7 @@ class WeatherHourly(WeatherBase):
         return self.location_name + "_hourly"
 
     @property
-    def forecast(self):
+    def get_forecast(self):
         """Return the forecast."""
         forecasts = []
         hours = len(self.collector.hourly_forecasts_data["data"])
