@@ -6,7 +6,7 @@ from datetime import datetime, tzinfo
 
 import iso8601
 import pytz
-from homeassistant.components.weather import WeatherEntity
+from homeassistant.components.weather import Forecast, WeatherEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import SPEED_KILOMETERS_PER_HOUR, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant, callback
@@ -73,8 +73,39 @@ class WeatherBase(WeatherEntity):
     async def async_added_to_hass(self) -> None:
         """Set up a listener and load data."""
         self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
-        self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
         self._update_callback()
+
+    async def async_forecast_daily(self) -> list[Forecast]:
+        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+        return [
+            Forecast(
+                datetime=iso8601.parse_date(data["date"]).astimezone(tzinfo).isoformat(),
+                native_temperature=data["temp_max"],
+                condition=MAP_CONDITION[data["icon_descriptor"]],
+                templow=data["temp_min"],
+                native_precipitation=data["rain_amount_max"],
+                precipitation_probability=data["rain_chance"],
+            )
+            for data in self.collector.daily_forecasts_data["data"].values()
+        ]
+
+    async def async_forecast_hourly(self) -> list[Forecast]:
+        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+        return [
+            Forecast(
+                datetime=iso8601.parse_date(data["time"]).astimezone(tzinfo).isoformat(),
+                native_temperature=data["temp"],
+                condition=MAP_CONDITION[data["icon_descriptor"]],
+                native_precipitation=data["rain_amount_max"],
+                precipitation_probability=data["rain_chance"],
+                wind_bearing=data["wind_direction"],
+                native_wind_speed=data["wind_speed_kilometre"],
+                wind_gust_speed=data["wind_gust_speed_kilometre"],
+                humidity=data["relative_humidity"],
+                uv=data["uv"],
+            )
+            for data in self.collector.hourly_forecasts_data["data"].values()
+        ]
 
     @callback
     def _update_callback(self) -> None:
@@ -144,6 +175,10 @@ class WeatherDaily(WeatherBase):
         """Initialize the sensor."""
         super().__init__(hass_data, location_name)
 
+    async def async_forecast_hourly(self) -> list[Forecast]:
+        # Don't implement this feature for this entity
+        raise NotImplementedError
+
     @property
     def name(self):
         """Return the name."""
@@ -154,24 +189,6 @@ class WeatherDaily(WeatherBase):
         """Return Unique ID string."""
         return self.location_name
 
-    @property
-    def forecast(self):
-        """Return the forecast."""
-        forecasts = []
-        days = len(self.collector.daily_forecasts_data["data"])
-        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
-        for day in range(0, days):
-            forecast = {
-                "datetime": iso8601.parse_date(self.collector.daily_forecasts_data["data"][day]["date"]).astimezone(tzinfo).isoformat(),
-                "native_temperature": self.collector.daily_forecasts_data["data"][day]["temp_max"],
-                "condition": MAP_CONDITION[self.collector.daily_forecasts_data["data"][day]["icon_descriptor"]],
-                "templow": self.collector.daily_forecasts_data["data"][day]["temp_min"],
-                "native_precipitation": self.collector.daily_forecasts_data["data"][day]["rain_amount_max"],
-                "precipitation_probability": self.collector.daily_forecasts_data["data"][day]["rain_chance"],
-            }
-            forecasts.append(forecast)
-        return forecasts
-
 
 class WeatherHourly(WeatherBase):
     """Representation of a BOM hourly weather entity."""
@@ -179,6 +196,10 @@ class WeatherHourly(WeatherBase):
     def __init__(self, hass_data, location_name):
         """Initialize the sensor."""
         super().__init__(hass_data, location_name)
+
+    async def async_forecast_daily(self) -> list[Forecast]:
+        # Don't implement this feature for this entity
+        raise NotImplementedError
 
     @property
     def name(self):
@@ -189,25 +210,3 @@ class WeatherHourly(WeatherBase):
     def unique_id(self):
         """Return Unique ID string."""
         return self.location_name + "_hourly"
-
-    @property
-    def forecast(self):
-        """Return the forecast."""
-        forecasts = []
-        hours = len(self.collector.hourly_forecasts_data["data"])
-        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
-        for hour in range(0, hours):
-            forecast = {
-                "datetime": iso8601.parse_date(self.collector.hourly_forecasts_data["data"][hour]["time"]).astimezone(tzinfo).isoformat(),
-                "native_temperature": self.collector.hourly_forecasts_data["data"][hour]["temp"],
-                "condition": MAP_CONDITION[self.collector.hourly_forecasts_data["data"][hour]["icon_descriptor"]],
-                "native_precipitation": self.collector.hourly_forecasts_data["data"][hour]["rain_amount_max"],
-                "precipitation_probability": self.collector.hourly_forecasts_data["data"][hour]["rain_chance"],
-                "wind_bearing": self.collector.hourly_forecasts_data["data"][hour]["wind_direction"],
-                "native_wind_speed": self.collector.hourly_forecasts_data["data"][hour]["wind_speed_kilometre"],
-                "wind_gust_speed": self.collector.hourly_forecasts_data["data"][hour]["wind_gust_speed_kilometre"],
-                "humidity": self.collector.hourly_forecasts_data["data"][hour]["relative_humidity"],
-                "uv": self.collector.hourly_forecasts_data["data"][hour]["uv"],
-            }
-            forecasts.append(forecast)
-        return forecasts
