@@ -35,6 +35,9 @@ logger:
 
 ## Release Notes
 
+### 1.2.0 - Refactor for breaking changes made by HA
+  - HA have completely changed how weather forecasts are handled causing a breaking change (thanks to @evilmarty for the work to update the integration).
+
 ### 1.1.21 - Fix for BOM breaking change
   - A minor bug fix for the previous fix.
 
