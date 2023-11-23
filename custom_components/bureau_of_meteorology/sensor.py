@@ -5,6 +5,7 @@ from typing import Any
 
 import iso8601
 import pytz
+import math #Required for calculated observations (e.g dew point)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
@@ -249,15 +250,22 @@ class ObservationSensor(SensorBase):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if self.sensor_name in self.collector.observations_data["data"]:
-            if self.collector.observations_data["data"][self.sensor_name] is not None:
-                if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
-                    self.current_state = self.collector.observations_data["data"][self.sensor_name]["value"]
-                else:
-                    self.current_state = self.collector.observations_data["data"][self.sensor_name]
+        if self.sensor_name == "dew_point":
+            temperature = self.collector.observations_data["data"]["temp"]
+            humidity = self.collector.observations_data["data"]["humidity"]
+            if temperature is not None and humidity is not None:
+                return calculate_dew_point(temperature, humidity)
             else:
-                self.current_state = "unavailable"
-        return self.current_state
+                return None
+        else:
+            if self.sensor_name in self.collector.observations_data["data"]:
+                if self.collector.observations_data["data"][self.sensor_name] is not None:
+                    if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
+                        return self.collector.observations_data["data"][self.sensor_name]["value"]
+                    else:
+                        return self.collector.observations_data["data"][self.sensor_name]
+            else:
+                return "unavailable"
 
     @property
     def name(self):
@@ -429,3 +437,10 @@ class NowLaterSensor(SensorBase):
     def name(self):
         """Return the name of the sensor."""
         return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()}"
+
+def calculate_dew_point(temperature, humidity):
+    """Calculate dew point using temperature and humidity observations"""
+    a, b = 17.27, 237.7  # Tetens equation constants
+    saturation_factor = ((a * temperature) / (b + temperature)) + math.log(humidity / 100.0)
+    dew_point = (b * saturation_factor) / (a - saturation_factor)
+    return round(dew_point, 1)
