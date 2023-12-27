@@ -2312,6 +2312,7 @@ The warning data is not well understood at present. Below is a list of observed 
 - flood_watch
 - flood_warning
 - sheep_graziers_warning
+- severe_thunderstorm_warning
 - severe_weather_warning
 - marine_wind_warning
 - hazardous_surf_warning
