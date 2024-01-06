@@ -35,6 +35,12 @@ logger:
 
 ## Release Notes
 
+### 1.3.0 - HA breaking stuff again
+  - Fix wind direction units. Thanks @djferg.
+  - Fix breaking changes introduced in 2023.9.
+  - Add dew sensor. Thanks @djferg.
+  - Updates for 2024.1 deprecations.
+
 ### 1.2.0 - Refactor for breaking changes made by HA
   - HA have completely changed how weather forecasts are handled causing a breaking change (thanks to @evilmarty for the work to update the integration).
 
@@ -45,17 +51,17 @@ logger:
   - A minor bug fix to make the integration work again after a BOM update.
 
 ### 1.1.19 - Updates to keep up with HA
-  - Minor internal changes to sensors
+  - Minor internal changes to sensors.
 
 ### 1.1.18 - Fix observed min/max sensors
-  - Fix a bug in the configuration of the observed min/max sensors (note that it may be necessary to remove and re-add the instance of the integration to correct)
+  - Fix a bug in the configuration of the observed min/max sensors (note that it may be necessary to remove and re-add the instance of the integration to correct).
 
 ### 1.1.17 - Adjust rain range format
   - On some cards (particularly on mobile devices) with larger numbers the rain range fields where getting to wide to fit. The range fields format has been updated from `25 to 30mm` to `25-30mm` to overcome this problem.
 ### 1.1.16 - Add more data to hourly forecast
-  - Add humidity to hourly forecast
-  - Add UV to hourly forecast
-  - Add wind gust speed to hourly forecast
+  - Add humidity to hourly forecast.
+  - Add UV to hourly forecast.
+  - Add wind gust speed to hourly forecast.
 
 ### 1.1.15 - Add more sensor data
   - Add color attributes to the fire danger sensor.
