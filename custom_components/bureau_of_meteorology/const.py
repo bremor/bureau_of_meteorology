@@ -162,8 +162,6 @@ OBSERVATION_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=ATTR_API_WIND_DIRECTION,
         name="Wind Direction",
-        native_unit_of_measurement=DEGREE,
-        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key=ATTR_API_GUST_SPEED_KILOMETRE,
@@ -177,6 +175,13 @@ OBSERVATION_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         name="Gust Speed kn",
         native_unit_of_measurement=UnitOfSpeed.KNOTS,
         device_class=SensorDeviceClass.WIND_SPEED,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="dew_point",
+        name="Dew Point",
+        native_unit_of_measurement=TEMP_CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )

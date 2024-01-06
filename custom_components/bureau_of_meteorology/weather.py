@@ -6,7 +6,7 @@ from datetime import datetime, tzinfo
 
 import iso8601
 import pytz
-from homeassistant.components.weather import Forecast, WeatherEntity
+from homeassistant.components.weather import Forecast, WeatherEntity, WeatherEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfSpeed, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
@@ -86,7 +86,7 @@ class WeatherBase(WeatherEntity):
                 native_precipitation=data["rain_amount_max"],
                 precipitation_probability=data["rain_chance"],
             )
-            for data in self.collector.daily_forecasts_data["data"].values()
+            for data in self.collector.daily_forecasts_data["data"]
         ]
 
     async def async_forecast_hourly(self) -> list[Forecast]:
@@ -104,8 +104,13 @@ class WeatherBase(WeatherEntity):
                 humidity=data["relative_humidity"],
                 uv=data["uv"],
             )
-            for data in self.collector.hourly_forecasts_data["data"].values()
+            for data in self.collector.hourly_forecasts_data["data"]
         ]
+
+    @property
+    def supported_features(self) -> WeatherEntityFeature:
+      """Determine supported features based on available data sets reported by WeatherKit."""
+      return WeatherEntityFeature.FORECAST_DAILY | WeatherEntityFeature.FORECAST_HOURLY
 
     @callback
     def _update_callback(self) -> None:
@@ -180,6 +185,10 @@ class WeatherDaily(WeatherBase):
         raise NotImplementedError
 
     @property
+    def supported_features(self):
+      return WeatherEntityFeature.FORECAST_DAILY
+
+    @property
     def name(self):
         """Return the name."""
         return self.location_name
@@ -200,6 +209,10 @@ class WeatherHourly(WeatherBase):
     async def async_forecast_daily(self) -> list[Forecast]:
         # Don't implement this feature for this entity
         raise NotImplementedError
+
+    @property
+    def supported_features(self):
+      return WeatherEntityFeature.FORECAST_HOURLY
 
     @property
     def name(self):
