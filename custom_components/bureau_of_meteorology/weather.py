@@ -8,7 +8,7 @@ import iso8601
 import pytz
 from homeassistant.components.weather import Forecast, WeatherEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import SPEED_KILOMETERS_PER_HOUR, TEMP_CELSIUS
+from homeassistant.const import UnitOfSpeed, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -130,7 +130,7 @@ class WeatherBase(WeatherEntity):
     @property
     def native_temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def humidity(self):
@@ -145,7 +145,7 @@ class WeatherBase(WeatherEntity):
     @property
     def native_wind_speed_unit(self):
         """Return the unit of measurement for wind speed."""
-        return SPEED_KILOMETERS_PER_HOUR
+        return UnitOfSpeed.KILOMETERS_PER_HOUR
 
     @property
     def wind_bearing(self):
