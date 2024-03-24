@@ -2320,12 +2320,14 @@ The warning data is not well understood at present. Below is a list of observed 
 
 ### warning_group_type
 - major
+- minor
 
 ### phase
 - new
 - update
 - renewal
 - downgrade
+- updgrade
 - final
 - cancelled
 
