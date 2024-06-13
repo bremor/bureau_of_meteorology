@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, tzinfo
 
 import iso8601
-import zoneifo
+import zoneinfo
 from homeassistant.components.weather import Forecast, WeatherEntity, WeatherEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfSpeed, UnitOfTemperature
