@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, tzinfo
 
 import iso8601
-import pytz
+import zoneifo
 from homeassistant.components.weather import Forecast, WeatherEntity, WeatherEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfSpeed, UnitOfTemperature
@@ -15,7 +15,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from pytz import timezone
+from zoneinfo import ZoneInfo
 
 from . import BomDataUpdateCoordinator
 from .const import (
@@ -76,7 +76,7 @@ class WeatherBase(WeatherEntity):
         self._update_callback()
 
     async def async_forecast_daily(self) -> list[Forecast]:
-        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+        tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
         return [
             Forecast(
                 datetime=iso8601.parse_date(data["date"]).astimezone(tzinfo).isoformat(),
@@ -90,7 +90,7 @@ class WeatherBase(WeatherEntity):
         ]
 
     async def async_forecast_hourly(self) -> list[Forecast]:
-        tzinfo = pytz.timezone(self.collector.locations_data["data"]["timezone"])
+        tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
         return [
             Forecast(
                 datetime=iso8601.parse_date(data["time"]).astimezone(tzinfo).isoformat(),
