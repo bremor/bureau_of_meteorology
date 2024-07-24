@@ -1,6 +1,7 @@
 """Platform for sensor integration."""
 import logging
 from datetime import datetime, tzinfo
+import pytz
 from typing import Any
 
 import iso8601
@@ -337,8 +338,8 @@ class ForecastSensor(SensorBase):
                         f'[{self.collector.daily_forecasts_data["data"][self.day]["uv_category"].replace("veryhigh", "very high").title()}]'
                     )
                 else:
-                    utc = timezone.utc
-                    local = timezone(self.collector.locations_data["data"]["timezone"])
+                    utc = pytz.utc
+                    local = pytz.timezone(self.collector.locations_data["data"]["timezone"])
                     start_time = utc.localize(datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"], "%Y-%m-%dT%H:%M:%SZ")).astimezone(local)
                     end_time = utc.localize(datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_end_time"], "%Y-%m-%dT%H:%M:%SZ")).astimezone(local)
                     return (
