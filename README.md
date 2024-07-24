@@ -3,7 +3,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE.md)
-![Maintenance](https://img.shields.io/maintenance/yes/2023?style=for-the-badge)
+![Maintenance](https://img.shields.io/maintenance/yes/2024?style=for-the-badge)
 
 ### **This integration only supports locations within Australia.**
 
@@ -34,6 +34,12 @@ logger:
 2. All feature requests, issues and questions are welcome.
 
 ## Release Notes
+
+### 1.3.3 - Fix for more HA breaking changes
+  - Fix setup block warning. Thanks @Poshy163
+
+### 1.3.2 - Fix for more HA breaking changes
+  - Fix for Detected blocking call to open inside the event loop by @dbiczo
 
 ### 1.3.0 - HA breaking stuff again
   - Fix wind direction units. Thanks @djferg.
