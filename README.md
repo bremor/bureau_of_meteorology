@@ -35,6 +35,12 @@ logger:
 
 ## Release Notes
 
+### 1.3.3 - Fix for more HA breaking changes
+  - Fix setup block warning. Thanks @Poshy163
+
+### 1.3.2 - Fix for more HA breaking changes
+  - Fix for Detected blocking call to open inside the event loop by @dbiczo
+
 ### 1.3.0 - HA breaking stuff again
   - Fix wind direction units. Thanks @djferg.
   - Fix breaking changes introduced in 2023.9.
