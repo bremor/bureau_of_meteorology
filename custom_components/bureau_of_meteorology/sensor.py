@@ -1,6 +1,6 @@
 """Platform for sensor integration."""
 import logging
-from datetime import datetime, tzinfo
+from datetime import datetime, tzinfo, timezone
 from typing import Any
 
 import iso8601
@@ -338,9 +338,9 @@ class ForecastSensor(SensorBase):
                     )
                 else:
                     utc = timezone.utc
-                    local = timezone(self.collector.locations_data["data"]["timezone"])
-                    start_time = utc.localize(datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"], "%Y-%m-%dT%H:%M:%SZ")).astimezone(local)
-                    end_time = utc.localize(datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_end_time"], "%Y-%m-%dT%H:%M:%SZ")).astimezone(local)
+                    local = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
+                    start_time = datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=utc).astimezone(local)
+                    end_time = datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_end_time"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=utc).astimezone(local)
                     return (
                         f'Sun protection recommended from {start_time.strftime("%-I:%M%p").lower()} to '
                         f'{end_time.strftime("%-I:%M%p").lower()}, UV Index predicted to reach '
