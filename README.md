@@ -37,6 +37,7 @@ logger:
 
 ### 1.3.3 - Fix for more HA breaking changes
   - Fix setup block warning. Thanks @Poshy163
+  - Fix 'timezone' not defined error in UV forecasts. Thanks @dbiczo
 
 ### 1.3.2 - Fix for more HA breaking changes
   - Fix for Detected blocking call to open inside the event loop by @dbiczo
