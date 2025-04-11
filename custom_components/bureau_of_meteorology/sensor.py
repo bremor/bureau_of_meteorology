@@ -243,8 +243,28 @@ class ObservationSensor(SensorBase):
 
         attr.update(self.collector.observations_data["data"]["station"])
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
-        if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
-            attr["time_observed"] = iso8601.parse_date(self.collector.observations_data["data"][self.sensor_name]["time"]).astimezone(tzinfo).isoformat()
+
+        # Only proceed for max_temp or min_temp
+        if self.sensor_name not in ("max_temp", "min_temp"):
+            return attr
+    
+        # Get data safely
+        data = self.collector.observations_data.get("data")
+        if not data:
+            return attr
+    
+        # Get sensor data safely
+        sensor_data = data.get(self.sensor_name)
+        if not sensor_data:
+            return attr
+    
+        # Get time safely
+        time_str = sensor_data.get("time")
+        if not time_str:
+            return attr
+
+        # We have all required data, now add the time_observed attribute
+        attr["time_observed"] = iso8601.parse_date(time_str).astimezone(tzinfo).isoformat()
         return attr
 
     @property
