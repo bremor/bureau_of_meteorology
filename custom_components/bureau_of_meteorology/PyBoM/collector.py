@@ -16,6 +16,11 @@ from .helpers import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Constants for retry mechanism
+MAX_RETRIES = 3
+RETRY_DELAY_BASE = 2  # seconds
+MAX_CACHE_AGE = 86400  # 24 hours in seconds
+
 class Collector:
     """Collector for PyBoM."""
 
@@ -28,6 +33,33 @@ class Collector:
         self.warnings_data = None
         self.geohash7 = geohash_encode(latitude, longitude)
         self.geohash6 = self.geohash7[:6]
+        # Cache storage with timestamps
+        self._cache = {
+            "locations": {"data": None, "timestamp": 0},
+            "observations": {"data": None, "timestamp": 0},
+            "daily_forecasts": {"data": None, "timestamp": 0},
+            "hourly_forecasts": {"data": None, "timestamp": 0},
+            "warnings": {"data": None, "timestamp": 0},
+        }
+
+    async def _fetch_with_retry(self, session, url, cache_key):
+        """Fetch data with retry mechanism and store in cache if successful."""
+        for attempt in range(MAX_RETRIES):
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        # Update cache with new data and timestamp
+                        self._cache[cache_key]["data"] = data
+                        self._cache[cache_key]["timestamp"] = time.time()
+                        return data
+                    else:
+                        _LOGGER.warning(
+                            f"Error requesting bureau_of_meteorology data from {url}: {response.status}"
+                        )
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            # _LOGGER.warning( todo )
+
 
     async def get_locations_data(self):
         headers={"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
