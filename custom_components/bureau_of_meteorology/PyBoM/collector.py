@@ -2,6 +2,7 @@
 import aiohttp
 import asyncio
 import datetime
+import time
 import logging
 
 from homeassistant.util import Throttle
@@ -55,26 +56,55 @@ class Collector:
                         return data
                     else:
                         _LOGGER.warning(
-                            f"Error requesting bureau_of_meteorology data from {url}: {response.status}"
+                            f"Error requesting API data from {url}: {response.status}"
                         )
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
-            # _LOGGER.warning( todo )
-
-
+            except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+                wait_time = RETRY_DELAY_BASE ** attempt
+                _LOGGER.warning(
+                    f"Attempt {attempt+1}/{MAX_RETRIES} failed: {err}. "
+                    f"Retrying in {wait_time} seconds..."
+                )
+                if attempt < MAX_RETRIES - 1:
+                    await asyncio.sleep(wait_time)
+                else:
+                    _LOGGER.error(
+                        f"Error requesting API data: {err}. "
+                        "Using cached data if available."
+                    )
+                    # Return cached data if available
+                    cached = self._cache[cache_key]["data"]
+                    if cached is not None:
+                        cache_age = time.time() - self._cache[cache_key]["timestamp"]
+                        _LOGGER.info(
+                            f"Returning cached {cache_key} data from {int(cache_age/60)} minutes ago"
+                        )
+                        return cached
+                    else:
+                        _LOGGER.error(f"No cached {cache_key} data available")
+                        return None
+        return None
+    
     async def get_locations_data(self):
-        headers={"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
         """Get JSON location name from BOM API endpoint."""
-        async with aiohttp.ClientSession(headers=headers) as session:
-            response = await session.get(URL_BASE + self.geohash7)
-
-        if response is not None and response.status == 200:
-            self.locations_data = await response.json()
+        headers = {"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                data = await self._fetch_with_retry(
+                    session, URL_BASE + self.geohash7, "locations"
+                )
+                if data:
+                    self.locations_data = data
+        except Exception as err:
+            _LOGGER.error(f"Unexpected error in get_locations_data: {err}")
 
     async def format_daily_forecast_data(self):
         """Format forecast data."""
+        if not self.daily_forecasts_data or "data" not in self.daily_forecasts_data:
+            _LOGGER.warning("No daily forecast data to format")
+            return
+            
         days = len(self.daily_forecasts_data["data"])
         for day in range(0, days):
-
             d = self.daily_forecasts_data["data"][day]
 
             d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
@@ -92,11 +122,15 @@ class Collector:
             else:
                 d["rain_amount_range"] = f"{d['rain_amount_min']}–{d['rain_amount_max']}"
 
+
     async def format_hourly_forecast_data(self):
         """Format forecast data."""
+        if not self.hourly_forecasts_data or "data" not in self.hourly_forecasts_data:
+            _LOGGER.warning("No hourly forecast data to format")
+            return
+            
         hours = len(self.hourly_forecasts_data["data"])
         for hour in range(0, hours):
-
             d = self.hourly_forecasts_data["data"][hour]
 
             d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
@@ -111,36 +145,65 @@ class Collector:
             else:
                 d["rain_amount_range"] = f"{d['rain_amount_min']} to {d['rain_amount_max']}"
 
+
+
     @Throttle(datetime.timedelta(minutes=5))
+
     async def async_update(self):
         """Refresh the data on the collector object."""
-        headers={"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
-        async with aiohttp.ClientSession(headers=headers) as session:
-            if self.locations_data is None:
-                async with session.get(URL_BASE + self.geohash7) as resp:
-                    self.locations_data = await resp.json()
+        headers = {"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
+        
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                # Get location data if not already available
+                if self.locations_data is None:
+                    data = await self._fetch_with_retry(
+                        session, URL_BASE + self.geohash7, "locations"
+                    )
+                    if data:
+                        self.locations_data = data
+                
+                # Get observations data
+                data = await self._fetch_with_retry(
+                    session, URL_BASE + self.geohash6 + URL_OBSERVATIONS, "observations"
+                )
+                if data:
+                    self.observations_data = data
+                    if self.observations_data["data"]["wind"] is not None:
+                        flatten_dict(["wind"], self.observations_data["data"])
+                    else:
+                        self.observations_data["data"]["wind_direction"] = "unavailable"
+                        self.observations_data["data"]["wind_speed_kilometre"] = "unavailable"
+                        self.observations_data["data"]["wind_speed_knot"] = "unavailable"
+                    if self.observations_data["data"]["gust"] is not None:
+                        flatten_dict(["gust"], self.observations_data["data"])
+                    else:
+                        self.observations_data["data"]["gust_speed_kilometre"] = "unavailable"
+                        self.observations_data["data"]["gust_speed_knot"] = "unavailable"
 
-            async with session.get(URL_BASE + self.geohash6 + URL_OBSERVATIONS) as resp:
-                self.observations_data = await resp.json()
-                if self.observations_data["data"]["wind"] is not None:
-                    flatten_dict(["wind"], self.observations_data["data"])
-                else:
-                    self.observations_data["data"]["wind_direction"] = "unavailable"
-                    self.observations_data["data"]["wind_speed_kilometre"] = "unavailable"
-                    self.observations_data["data"]["wind_speed_knot"] = "unavailable"
-                if self.observations_data["data"]["gust"] is not None:
-                    flatten_dict(["gust"], self.observations_data["data"])
-                else:
-                    self.observations_data["data"]["gust_speed_kilometre"] = "unavailable"
-                    self.observations_data["data"]["gust_speed_knot"] = "unavailable"
+                # Get daily forecast data
+                data = await self._fetch_with_retry(
+                    session, URL_BASE + self.geohash6 + URL_DAILY, "daily_forecasts"
+                )
+                if data:
+                    self.daily_forecasts_data = data
+                    await self.format_daily_forecast_data()
 
-            async with session.get(URL_BASE + self.geohash6 + URL_DAILY) as resp:
-                self.daily_forecasts_data = await resp.json()
-                await self.format_daily_forecast_data()
+                # Get hourly forecast data
+                data = await self._fetch_with_retry(
+                    session, URL_BASE + self.geohash6 + URL_HOURLY, "hourly_forecasts"
+                )
+                if data:
+                    self.hourly_forecasts_data = data
+                    await self.format_hourly_forecast_data()
 
-            async with session.get(URL_BASE + self.geohash6 + URL_HOURLY) as resp:
-                self.hourly_forecasts_data = await resp.json()
-                await self.format_hourly_forecast_data()
-
-            async with session.get(URL_BASE + self.geohash6 + URL_WARNINGS) as resp:
-                self.warnings_data = await resp.json()
+                # Get warnings data
+                data = await self._fetch_with_retry(
+                    session, URL_BASE + self.geohash6 + URL_WARNINGS, "warnings"
+                )
+                if data:
+                    self.warnings_data = data
+                    
+        except Exception as err:
+            _LOGGER.error(f"Unexpected error during async_update: {err}")
+            # Even if we have an unexpected error, we still have our cached data
