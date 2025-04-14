@@ -8,7 +8,7 @@ import logging
 from homeassistant.util import Throttle
 
 from .const import (
-    MAP_MDI_ICON, MAP_UV, URL_BASE, URL_DAILY,
+    MAP_MDI_ICON, URL_BASE, URL_DAILY,
     URL_HOURLY, URL_OBSERVATIONS, URL_WARNINGS
 )
 from .helpers import (
@@ -145,10 +145,7 @@ class Collector:
             else:
                 d["rain_amount_range"] = f"{d['rain_amount_min']} to {d['rain_amount_max']}"
 
-
-
     @Throttle(datetime.timedelta(minutes=5))
-
     async def async_update(self):
         """Refresh the data on the collector object."""
         headers = {"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
