@@ -14,14 +14,18 @@ This Home Assistant custom component uses the [Bureau of Meteorology (BOM)](http
 Install via HACS (default store) or install manually by copying the files in a new 'custom_components/bureau_of_meteorology' directory.
 
 ## Configuration
+
 After you have installed the custom component (see above):
-1. Goto the `Configuration` -> `Integrations` page.  
+
+1. Goto the `Configuration` -> `Integrations` page.
 2. On the bottom right of the page, click on the `+ Add Integration` sign to add an integration.
 3. Search for `Bureau of Meteorology`. (If you don't see it, try refreshing your browser page to reload the cache.)
 4. Click `Submit` so add the integration.
 
 ## Troubleshooting
+
 Please set your logging for the custom_component to debug:
+
 ```yaml
 logger:
   default: warn
@@ -30,65 +34,74 @@ logger:
 ```
 
 ### Notes
+
 1. This integration will not refresh data faster than once every 5 minutes.
 2. All feature requests, issues and questions are welcome.
 
 ## Release Notes
 
+### 1.3.5 - Fix for null error warnings and small get_forecasts() response improvement
+- Fix null forecast errors. Thanks @systemtester
+- Fix uv_index response in action.get_forecasts() to confirm with HA documented responses Thanks @systemtester
+
+### 1.3.4 - Fix for 2025.12 HA deprecation warnings
+- Fix config_entry deprecation warning. Thanks @systemtester
+
 ### 1.3.3 - Fix for more HA breaking changes
-  - Fix setup block warning. Thanks @Poshy163
-  - Fix 'timezone' not defined error in UV forecasts. Thanks @dbiczo
+- Fix setup block warning. Thanks @Poshy163
+- Fix 'timezone' not defined error in UV forecasts. Thanks @dbiczo
 
 ### 1.3.2 - Fix for more HA breaking changes
-  - Fix for Detected blocking call to open inside the event loop by @dbiczo
+- Fix for Detected blocking call to open inside the event loop by @dbiczo
 
 ### 1.3.0 - HA breaking stuff again
-  - Fix wind direction units. Thanks @djferg.
-  - Fix breaking changes introduced in 2023.9.
-  - Add dew sensor. Thanks @djferg.
-  - Updates for 2024.1 deprecations.
+- Fix wind direction units. Thanks @djferg.
+- Fix breaking changes introduced in 2023.9.
+- Add dew sensor. Thanks @djferg.
+- Updates for 2024.1 deprecations.
 
 ### 1.2.0 - Refactor for breaking changes made by HA
-  - HA have completely changed how weather forecasts are handled causing a breaking change (thanks to @evilmarty for the work to update the integration).
+- HA have completely changed how weather forecasts are handled causing a breaking change (thanks to @evilmarty for the work to update the integration).
 
 ### 1.1.21 - Fix for BOM breaking change
-  - A minor bug fix for the previous fix.
+- A minor bug fix for the previous fix.
 
 ### 1.1.20 - Fix for BOM breaking change
-  - A minor bug fix to make the integration work again after a BOM update.
+- A minor bug fix to make the integration work again after a BOM update.
 
 ### 1.1.19 - Updates to keep up with HA
-  - Minor internal changes to sensors.
+- Minor internal changes to sensors.
 
 ### 1.1.18 - Fix observed min/max sensors
-  - Fix a bug in the configuration of the observed min/max sensors (note that it may be necessary to remove and re-add the instance of the integration to correct).
+- Fix a bug in the configuration of the observed min/max sensors (note that it may be necessary to remove and re-add the instance of the integration to correct).
 
 ### 1.1.17 - Adjust rain range format
-  - On some cards (particularly on mobile devices) with larger numbers the rain range fields where getting to wide to fit. The range fields format has been updated from `25 to 30mm` to `25-30mm` to overcome this problem.
+- On some cards (particularly on mobile devices) with larger numbers the rain range fields where getting to wide to fit. The range fields format has been updated from `25 to 30mm` to `25-30mm` to overcome this problem.
+
 ### 1.1.16 - Add more data to hourly forecast
-  - Add humidity to hourly forecast.
-  - Add UV to hourly forecast.
-  - Add wind gust speed to hourly forecast.
+- Add humidity to hourly forecast.
+- Add UV to hourly forecast.
+- Add wind gust speed to hourly forecast.
 
 ### 1.1.15 - Add more sensor data
-  - Add color attributes to the fire danger sensor.
-  - Add observation sensors for observed min/max along with timestamp.
+- Add color attributes to the fire danger sensor.
+- Add observation sensors for observed min/max along with timestamp.
 
 ### 1.1.14 - Allow reconfiguration
-  - Allow integration reconfiguration (thanks to @Djelibeybi for the contribution).
-  - Register entities within a service  (thanks to @Djelibeybi for the contribution).
-  - Adjust UV text to match an update made on the BoM site.
-  - Fix a problem with the call to the location api not returning a valid location.
+- Allow integration reconfiguration (thanks to @Djelibeybi for the contribution).
+- Register entities within a service (thanks to @Djelibeybi for the contribution).
+- Adjust UV text to match an update made on the BoM site.
+- Fix a problem with the call to the location api not returning a valid location.
 
 ### 1.1.13 - Add bad location error message
-  - Add a meaningful error message when trying to configure using lat/lon that aren't in Australia.
+- Add a meaningful error message when trying to configure using lat/lon that aren't in Australia.
 
 ### 1.1.12 - Embed timezone in timestamps
-  - This embeds the timezone of the location in timestamps, whcih is needed to display timess correctly if you create sensors in a different timezone to where the HA server is located.
+- This embeds the timezone of the location in timestamps, whcih is needed to display timess correctly if you create sensors in a different timezone to where the HA server is located.
 
 ### 1.1.11 - Fixes for 2022.7.0
-  - This is to address an architecture change in 2022.7.0 and will not install on earlier versions of HA.
-  
+- This is to address an architecture change in 2022.7.0 and will not install on earlier versions of HA.
+
 ### 1.1.10 - Add UV Forecast
 - Adds new uv_forecast sensors to the daily forecast.
 - Make the uv_category sensors more human readable.
