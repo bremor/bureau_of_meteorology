@@ -1,3 +1,7 @@
+# Problems
+- The integration shows its condition to be "sunny" at night time.
+- There is an "unknown" condition that appears from 11PM to 12AM every day. 
+
 # Forecast condition
 Condition is determined by the `icon_descriptor` entity.
 
