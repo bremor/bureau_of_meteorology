@@ -21,7 +21,7 @@ Example:
         "dark_mode_colour": "#64bf30"
 ```
 
-Because the BOM is not uses multiple factors to determine the condition, it appears wrong in home assistant. For example, the `icon_descriptor` could show "sunny" at night time which is not correct.
+Because the integration does not use multiple factors to determine the condition, it appears wrong in home assistant. For example, the `icon_descriptor` could show "sunny" at night time which is not correct.
 
 # Potential fixes
 ## Add a check to see if the weather is at night

@@ -107,13 +107,25 @@ class Collector:
         for day in range(0, days):
             d = self.daily_forecasts_data["data"][day]
 
-            d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
-
             flatten_dict(["amount"], d["rain"])
             flatten_dict(["rain", "uv", "astronomical"], d)
 
             if day == 0:
                 flatten_dict(["now"], d)
+
+                is_night = d.get("now_is_night")
+                icon_desc = d.get("icon_descriptor")
+
+                # Override icon_descriptor if it's night and icon is sunny/mostly_sunny
+                if is_night and icon_desc in {"sunny", "mostly_sunny"}:
+                    _LOGGER.debug("Overriding icon_descriptor '%s' to 'clear' due to nighttime", icon_desc)
+                    d["icon_descriptor"] = "clear"
+                # Override icon_descriptor if its clear during the day
+                elif not is_night and icon_desc == "clear":
+                    _LOGGER.debug("Overriding icon_descriptor 'clear' to 'sunny' due to daytime")
+                    d["icon_descriptor"] = "sunny"
+
+            d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
 
             # If rain amount max is None, set as rain amount min
             if d["rain_amount_max"] is None:
@@ -132,6 +144,20 @@ class Collector:
         hours = len(self.hourly_forecasts_data["data"])
         for hour in range(0, hours):
             d = self.hourly_forecasts_data["data"][hour]
+
+            # Override icon_descriptor if it's night and icon is sunny/mostly_sunny
+            is_night = d.get("is_night")
+            icon_desc = d.get("icon_descriptor")
+            forecast_time = d.get("time")
+
+            # Log raw values
+            _LOGGER.debug("[Hourly] Hour %s | Raw data: %s", hour, d)
+
+            _LOGGER.debug("[Hourly] Hour %s | time=%s | icon_descriptor=%s | is_night=%s", hour, forecast_time, icon_desc, is_night)
+
+            if is_night and icon_desc in {"sunny", "mostly_sunny"}:
+                _LOGGER.debug("Overriding hourly icon_descriptor '%s' to 'clear' due to nighttime", icon_desc)
+                d["icon_descriptor"] = "clear"
 
             d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
 
