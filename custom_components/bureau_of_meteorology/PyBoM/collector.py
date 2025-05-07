@@ -118,11 +118,9 @@ class Collector:
 
                 # Override icon_descriptor if it's night and icon is sunny/mostly_sunny
                 if is_night and icon_desc in {"sunny", "mostly_sunny"}:
-                    _LOGGER.debug("Overriding icon_descriptor '%s' to 'clear' due to nighttime", icon_desc)
                     d["icon_descriptor"] = "clear"
                 # Override icon_descriptor if its clear during the day
                 elif not is_night and icon_desc == "clear":
-                    _LOGGER.debug("Overriding icon_descriptor 'clear' to 'sunny' due to daytime")
                     d["icon_descriptor"] = "sunny"
 
             d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
@@ -150,13 +148,7 @@ class Collector:
             icon_desc = d.get("icon_descriptor")
             forecast_time = d.get("time")
 
-            # Log raw values
-            _LOGGER.debug("[Hourly] Hour %s | Raw data: %s", hour, d)
-
-            _LOGGER.debug("[Hourly] Hour %s | time=%s | icon_descriptor=%s | is_night=%s", hour, forecast_time, icon_desc, is_night)
-
             if is_night and icon_desc in {"sunny", "mostly_sunny"}:
-                _LOGGER.debug("Overriding hourly icon_descriptor '%s' to 'clear' due to nighttime", icon_desc)
                 d["icon_descriptor"] = "clear"
 
             d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
