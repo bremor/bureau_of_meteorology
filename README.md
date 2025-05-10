@@ -40,6 +40,10 @@ logger:
 
 ## Release Notes
 
+### 1.3.6 - Fix incorrect weather icons/states and adjusted timezone to match weather station location: 
+- Fix 'Clear Night' shown during day and 'Sunny' shown at night. Thanks @Ay1tsMe
+- Show hourly and daily forecasts in the weather-stations local time instead of HA server's time. Thanks @Ay1tsMe
+
 ### 1.3.5 - Fix for null error warnings and small get_forecasts() response improvement
 - Fix null forecast errors. Thanks @systemtester
 - Fix uv_index response in action.get_forecasts() to confirm with HA documented responses Thanks @systemtester
