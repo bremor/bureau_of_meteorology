@@ -47,14 +47,13 @@ async def async_setup_entry(
         CONF_WEATHER_NAME, config_entry.data.get(CONF_WEATHER_NAME, "Home")
     )
 
-    new_entities.append(WeatherDaily(hass_data, location_name))
-    new_entities.append(WeatherHourly(hass_data, location_name))
+    new_entities.append(BoMWeather(hass_data, location_name))
 
     if new_entities:
         async_add_entities(new_entities, update_before_add=False)
 
 
-class WeatherBase(WeatherEntity):
+class BoMWeather(WeatherEntity):
     """Base representation of a BOM weather entity."""
 
     def __init__(self, hass_data, location_name) -> None:
@@ -74,6 +73,16 @@ class WeatherBase(WeatherEntity):
         """Set up a listener and load data."""
         self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
         self._update_callback()
+
+    @property
+    def name(self):
+        """Return the name."""
+        return self.location_name
+
+    @property
+    def unique_id(self):
+        """Return Unique ID string."""
+        return self.location_name
 
     async def async_forecast_daily(self) -> list[Forecast]:
         tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
@@ -173,53 +182,5 @@ class WeatherBase(WeatherEntity):
         await self.coordinator.async_update()
 
 
-class WeatherDaily(WeatherBase):
-    """Representation of a BOM weather entity."""
-
-    def __init__(self, hass_data, location_name):
-        """Initialize the sensor."""
-        super().__init__(hass_data, location_name)
-
-    async def async_forecast_hourly(self) -> list[Forecast]:
-        # Don't implement this feature for this entity
-        raise NotImplementedError
-
-    @property
-    def supported_features(self):
-      return WeatherEntityFeature.FORECAST_DAILY
-
-    @property
-    def name(self):
-        """Return the name."""
-        return self.location_name
-
-    @property
-    def unique_id(self):
-        """Return Unique ID string."""
-        return self.location_name
 
 
-class WeatherHourly(WeatherBase):
-    """Representation of a BOM hourly weather entity."""
-
-    def __init__(self, hass_data, location_name):
-        """Initialize the sensor."""
-        super().__init__(hass_data, location_name)
-
-    async def async_forecast_daily(self) -> list[Forecast]:
-        # Don't implement this feature for this entity
-        raise NotImplementedError
-
-    @property
-    def supported_features(self):
-      return WeatherEntityFeature.FORECAST_HOURLY
-
-    @property
-    def name(self):
-        """Return the name."""
-        return self.location_name + " Hourly"
-
-    @property
-    def unique_id(self):
-        """Return Unique ID string."""
-        return self.location_name + "_hourly"
