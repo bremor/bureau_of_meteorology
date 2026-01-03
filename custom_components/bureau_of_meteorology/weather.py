@@ -6,7 +6,7 @@ from datetime import datetime, tzinfo
 
 import iso8601
 import zoneinfo
-from homeassistant.components.weather import Forecast, WeatherEntity, WeatherEntityFeature
+from homeassistant.components.weather import Forecast, WeatherEntity, WeatherEntityFeature, DOMAIN as WEATHER_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfSpeed, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
@@ -40,17 +40,23 @@ async def async_setup_entry(
 ) -> None:
     """Add sensors for passed config_entry in HA."""
     hass_data = hass.data[DOMAIN][config_entry.entry_id]
-
-    new_entities = []
+    entity_registry = er.async_get(hass)
 
     location_name = config_entry.options.get(
         CONF_WEATHER_NAME, config_entry.data.get(CONF_WEATHER_NAME, "Home")
     )
 
-    new_entities.append(BoMWeather(hass_data, location_name))
+    entities = [BoMWeather(hass_data, location_name)]
 
-    if new_entities:
-        async_add_entities(new_entities, update_before_add=False)
+    # Remove hourly entity from legacy config entries
+    if hourly_entity_id := entity_registry.async_get_entity_id(
+        WEATHER_DOMAIN,
+        DOMAIN,
+        location_name+'_hourly',
+    ): 
+        entity_registry.async_remove(hourly_entity_id)
+
+    async_add_entities(entities, update_before_add=False)
 
 
 class BoMWeather(WeatherEntity):
