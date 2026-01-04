@@ -135,6 +135,7 @@ OBSERVATION_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         key=ATTR_API_RAIN_SINCE_9AM,
         name="Rain Since 9am",
         native_unit_of_measurement=UnitOfLength.MILLIMETERS,
+        suggested_display_precision=1,
         device_class=SensorDeviceClass.PRECIPITATION,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
