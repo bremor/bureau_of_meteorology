@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# Bootstrap dependencies when running develop directly.
+python_executable="${PWD}/.venv/bin/python"
+if [[ ! -x "${python_executable}" ]]; then
+    echo "Missing Python environment, running scripts/setup..."
+    "${PWD}/scripts/setup"
+fi
+
+if ! "${python_executable}" - <<'PY' >/dev/null 2>&1
+import homeassistant  # noqa: F401
+import hass_frontend  # noqa: F401
+PY
+then
+    echo "Missing Python dependencies, running scripts/setup..."
+    "${PWD}/scripts/setup"
+fi
+
+# Create config dir if not present
+if [[ ! -d "${PWD}/config" ]]; then
+    mkdir -p "${PWD}/config"
+    .venv/bin/hass --config "${PWD}/config" --script ensure_config
+fi
+
+# Set the path to custom_components
+## This lets us have the structure we want <root>/custom_components/bureau_of_meteorology
+## while at the same time have Home Assistant configuration inside <root>/config
+## without resorting to symlinks.
+export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
+
+# Start Home Assistant
+.venv/bin/hass --config "${PWD}/config" --debug

@@ -1,0 +1,19 @@
+[project]
+name = "bureau-of-meteorology"
+version = "0.1.0"
+requires-python = ">=3.11,<3.12"
+
+[dependency-groups]
+dev = [
+    "iso8601>=2.1.0",
+    "homeassistant==2023.9.0",
+    "python-dateutil>=2.9.0.post0",
+    "mutagen>=1.47.0",
+    "numpy>=1.26.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.5.0",
+]
+
+[tool.uv]
+package = false

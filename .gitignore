@@ -1,3 +1,10 @@
 __pycache__/
-config/
+
 .python_version
+.venv/
+
+# Home Assistant configuration
+config/*
+!config/configuration.yaml
+
+*.har
