@@ -22,6 +22,19 @@ After you have installed the custom component (see above):
 3. Search for `Bureau of Meteorology`. (If you don't see it, try refreshing your browser page to reload the cache.)
 4. Click `Submit` so add the integration.
 
+## API Source Model
+
+This integration now primarily uses BoM's newer place/grid/station APIs (`api.bom.gov.au/apikey/v1`) to match data shown on the BoM website and app.
+
+At a high level:
+
+1. A nearby `place_id` is selected during setup/options.
+2. Forecasts come from the place forecast grid (`x`, `y`) and associated text/astro endpoints.
+3. Observations come from the nearest station mapped to that place.
+4. Warnings come from coordinate-based warning endpoints.
+
+Legacy geohash (`api.weather.bom.gov.au/v1/locations/...`) remains as a compatibility fallback path, but it is no longer the primary source model.
+
 ## Troubleshooting
 
 Please set your logging for the custom_component to debug:
@@ -40,7 +53,7 @@ logger:
 
 ## Release Notes
 
-### 1.3.6 - Fix incorrect weather icons/states and adjusted timezone to match weather station location: 
+### 1.3.6 - Fix incorrect weather icons/states and adjusted timezone to match weather station location:
 - Fix 'Clear Night' shown during day and 'Sunny' shown at night. Thanks @Ay1tsMe
 - Show hourly and daily forecasts in the weather-stations local time instead of HA server's time. Thanks @Ay1tsMe
 
