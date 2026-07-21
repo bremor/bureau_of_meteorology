@@ -9,6 +9,14 @@
           "longitude": "[%key:common::config_flow::data::longitude%]"
         }
       },
+      "location_source": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "forecast_location_geohash": "[%key:common::config_flow::data::forecast_location_geohash%]",
+          "observation_location_geohash": "[%key:common::config_flow::data::observation_location_geohash%]"
+        }
+      },
       "weather_name": {
         "title": "[%key:common::config_flow::title%]",
         "description": "[%key:common::config_flow::description%]",
@@ -59,6 +67,14 @@
         "data": {
           "latitude": "[%key:common::config_flow::data::latitude%]",
           "longitude": "[%key:common::config_flow::data::longitude%]"
+        }
+      },
+      "location_source": {
+        "title": "[%key:common::config_flow::title%]",
+        "description": "[%key:common::config_flow::description%]",
+        "data": {
+          "forecast_location_geohash": "[%key:common::config_flow::data::forecast_location_geohash%]",
+          "observation_location_geohash": "[%key:common::config_flow::data::observation_location_geohash%]"
         }
       },
       "weather_name": {
