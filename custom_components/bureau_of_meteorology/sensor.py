@@ -1,13 +1,14 @@
 """Platform for sensor integration."""
+
 import logging
-from datetime import datetime, tzinfo, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 import iso8601
 import zoneinfo
-import math #Required for calculated observations (e.g dew point)
-from homeassistant.config_entries import ConfigEntry
+import math  # Required for calculated observations (e.g dew point)
 from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_DATE,
@@ -15,11 +16,9 @@ from homeassistant.const import (
 )
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo, Entity, EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from zoneinfo import ZoneInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import BomDataUpdateCoordinator
 from .const import (
@@ -156,8 +155,8 @@ async def async_setup_entry(
         if warnings_basename is not None:
             new_entities.append(
                 WarningsSensor(
-                    hass_data, 
-                    warnings_basename, 
+                    hass_data,
+                    warnings_basename,
                     "warnings",
                     [
                         description
@@ -174,7 +173,13 @@ async def async_setup_entry(
 class SensorBase(CoordinatorEntity[BomDataUpdateCoordinator], SensorEntity):
     """Base representation of a BOM Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,) -> None:
+    def __init__(
+        self,
+        hass_data,
+        location_name,
+        sensor_name,
+        description: SensorEntityDescription,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(hass_data[COORDINATOR])
         self.collector: Collector = hass_data[COLLECTOR]
@@ -211,11 +216,41 @@ class SensorBase(CoordinatorEntity[BomDataUpdateCoordinator], SensorEntity):
         """Refresh the data on the collector object."""
         await self.collector.async_update()
 
+    def _location_data(self) -> dict[str, Any]:
+        """Return location payload data with a non-optional type."""
+        return (self.collector.locations_data or {}).get("data", {})
+
+    def _observations_data(self) -> dict[str, Any]:
+        """Return observation payload data with a non-optional type."""
+        return (self.collector.observations_data or {}).get("data", {})
+
+    def _observations_metadata(self) -> dict[str, Any]:
+        """Return observation payload metadata with a non-optional type."""
+        return (self.collector.observations_data or {}).get("metadata", {})
+
+    def _daily_forecasts(self) -> list[dict[str, Any]]:
+        """Return daily forecast list with a non-optional type."""
+        return (self.collector.daily_forecasts_data or {}).get("data", [])
+
+    def _daily_forecasts_metadata(self) -> dict[str, Any]:
+        """Return daily forecast metadata with a non-optional type."""
+        return (self.collector.daily_forecasts_data or {}).get("metadata", {})
+
+    def _warnings_data(self) -> dict[str, Any]:
+        """Return warnings payload with a non-optional type."""
+        return self.collector.warnings_data or {"metadata": {}, "data": []}
+
 
 class ObservationSensor(SensorBase):
     """Representation of a BOM Observation Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,):
+    def __init__(
+        self,
+        hass_data,
+        location_name,
+        sensor_name,
+        description: SensorEntityDescription,
+    ):
         """Initialize the sensor."""
         super().__init__(hass_data, location_name, sensor_name, description)
 
@@ -234,56 +269,66 @@ class ObservationSensor(SensorBase):
         """Return the state attributes of the sensor."""
         attr = {}
 
-        tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
-        for key in self.collector.observations_data["metadata"]:
+        location_data = self._location_data()
+        observations_data = self._observations_data()
+        observations_metadata = self._observations_metadata()
+        tzinfo = zoneinfo.ZoneInfo(location_data.get("timezone", "UTC"))
+        for key in observations_metadata:
             try:
-                attr[key] = iso8601.parse_date(self.collector.observations_data["metadata"][key]).astimezone(tzinfo).isoformat()
+                attr[key] = (
+                    iso8601.parse_date(observations_metadata[key])
+                    .astimezone(tzinfo)
+                    .isoformat()
+                )
             except iso8601.ParseError:
-                attr[key] = self.collector.observations_data["metadata"][key]
+                attr[key] = observations_metadata[key]
 
-        attr.update(self.collector.observations_data["data"]["station"])
+        attr.update(observations_data.get("station", {}))
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
 
         # Only proceed for max_temp or min_temp
         if self.sensor_name not in ("max_temp", "min_temp"):
             return attr
-    
+
         # Get data safely
-        data = self.collector.observations_data.get("data")
+        data = observations_data
         if not data:
             return attr
-    
+
         # Get sensor data safely
         sensor_data = data.get(self.sensor_name)
         if not sensor_data:
             return attr
-    
+
         # Get time safely
         time_str = sensor_data.get("time")
         if not time_str:
             return attr
 
         # We have all required data, now add the time_observed attribute
-        attr["time_observed"] = iso8601.parse_date(time_str).astimezone(tzinfo).isoformat()
+        attr["time_observed"] = (
+            iso8601.parse_date(time_str).astimezone(tzinfo).isoformat()
+        )
         return attr
 
     @property
     def state(self):
         """Return the state of the sensor."""
+        observations_data = self._observations_data()
         if self.sensor_name == "dew_point":
-            temperature = self.collector.observations_data["data"]["temp"]
-            humidity = self.collector.observations_data["data"]["humidity"]
+            temperature = observations_data.get("temp")
+            humidity = observations_data.get("humidity")
             if temperature is not None and humidity is not None:
                 return calculate_dew_point(temperature, humidity)
             else:
                 return None
         else:
-            if self.sensor_name in self.collector.observations_data["data"]:
-                if self.collector.observations_data["data"][self.sensor_name] is not None:
+            if self.sensor_name in observations_data:
+                if observations_data[self.sensor_name] is not None:
                     if self.sensor_name == "max_temp" or self.sensor_name == "min_temp":
-                        return self.collector.observations_data["data"][self.sensor_name]["value"]
+                        return observations_data[self.sensor_name]["value"]
                     else:
-                        return self.collector.observations_data["data"][self.sensor_name]
+                        return observations_data[self.sensor_name]
             else:
                 return "unavailable"
 
@@ -296,7 +341,14 @@ class ObservationSensor(SensorBase):
 class ForecastSensor(SensorBase):
     """Representation of a BOM Forecast Sensor."""
 
-    def __init__(self, hass_data, location_name, day, sensor_name, description: SensorEntityDescription,):
+    def __init__(
+        self,
+        hass_data,
+        location_name,
+        day,
+        sensor_name,
+        description: SensorEntityDescription,
+    ):
         """Initialize the sensor."""
         self.day = day
         super().__init__(hass_data, location_name, sensor_name, description)
@@ -315,65 +367,103 @@ class ForecastSensor(SensorBase):
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
         attr = {}
+        forecasts_data = self._daily_forecasts()
+        forecasts_metadata = self._daily_forecasts_metadata()
 
         # If there is no data for this day, do not add attributes for this day.
-        if self.day < len(self.collector.daily_forecasts_data["data"]):
-            tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
-            for key in self.collector.daily_forecasts_data["metadata"]:
+        if self.day < len(forecasts_data):
+            tzinfo = zoneinfo.ZoneInfo(self._location_data().get("timezone", "UTC"))
+            for key in forecasts_metadata:
                 try:
-                    attr[key] = iso8601.parse_date(self.collector.daily_forecasts_data["metadata"][key]).astimezone(tzinfo).isoformat()
+                    attr[key] = (
+                        iso8601.parse_date(forecasts_metadata[key])
+                        .astimezone(tzinfo)
+                        .isoformat()
+                    )
                 except iso8601.ParseError:
-                    attr[key] = self.collector.daily_forecasts_data["metadata"][key]
+                    attr[key] = forecasts_metadata[key]
             attr[ATTR_ATTRIBUTION] = ATTRIBUTION
-            attr[ATTR_DATE] = iso8601.parse_date(self.collector.daily_forecasts_data["data"][self.day]["date"]).astimezone(tzinfo).isoformat()
-            if (self.sensor_name == "fire_danger") and (self.current_state != None):
-                if self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["default_colour"]:
-                    attr["color_fill"] = self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["default_colour"]
-                    attr["color_text"] =  "#ffffff" if (self.collector.daily_forecasts_data["data"][self.day]["fire_danger_category"]["text"] == "Catastrophic") else "#000000"
+            attr[ATTR_DATE] = (
+                iso8601.parse_date(forecasts_data[self.day]["date"])
+                .astimezone(tzinfo)
+                .isoformat()
+            )
+            if (self.sensor_name == "fire_danger") and (self.current_state is not None):
+                if forecasts_data[self.day]["fire_danger_category"]["default_colour"]:
+                    attr["color_fill"] = forecasts_data[self.day][
+                        "fire_danger_category"
+                    ]["default_colour"]
+                    attr["color_text"] = (
+                        "#ffffff"
+                        if forecasts_data[self.day]["fire_danger_category"]["text"]
+                        == "Catastrophic"
+                        else "#000000"
+                    )
             if self.sensor_name.startswith("extended"):
-                attr[ATTR_STATE] = self.collector.daily_forecasts_data["data"][self.day]["extended_text"]
+                attr[ATTR_STATE] = forecasts_data[self.day]["extended_text"]
         return attr
 
     @property
     def state(self):
         """Return the state of the sensor."""
+        forecasts_data = self._daily_forecasts()
         # If there is no data for this day, return state as 'None'.
-        if self.day < len(self.collector.daily_forecasts_data["data"]):
+        if self.day < len(forecasts_data):
             if self.device_class == SensorDeviceClass.TIMESTAMP:
-                tzinfo = zoneinfo.ZoneInfo(
-                    self.collector.locations_data["data"]["timezone"]
-                )
+                tzinfo = zoneinfo.ZoneInfo(self._location_data().get("timezone", "UTC"))
                 try:
-                    return iso8601.parse_date(self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]).astimezone(tzinfo).isoformat()
+                    return (
+                        iso8601.parse_date(forecasts_data[self.day][self.sensor_name])
+                        .astimezone(tzinfo)
+                        .isoformat()
+                    )
                 except iso8601.ParseError:
-                    return self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
+                    return forecasts_data[self.day][self.sensor_name]
             if self.sensor_name == "uv_forecast":
-                if (self.collector.daily_forecasts_data["data"][self.day]["uv_category"] is None):
+                if forecasts_data[self.day]["uv_category"] is None:
                     return None
-                if (self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"] is None):
+                if forecasts_data[self.day]["uv_start_time"] is None:
                     return (
                         f"Sun protection not required, UV Index predicted to reach "
-                        f'{self.collector.daily_forecasts_data["data"][self.day]["uv_max_index"]} '
-                        f'[{self.collector.daily_forecasts_data["data"][self.day]["uv_category"].replace("veryhigh", "very high").title()}]'
+                        f"{forecasts_data[self.day]['uv_max_index']} "
+                        f"[{forecasts_data[self.day]['uv_category'].replace('veryhigh', 'very high').title()}]"
                     )
                 else:
                     utc = timezone.utc
-                    local = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
-                    start_time = datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_start_time"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=utc).astimezone(local)
-                    end_time = datetime.strptime(self.collector.daily_forecasts_data["data"][self.day]["uv_end_time"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=utc).astimezone(local)
-                    return (
-                        f'Sun protection recommended from {start_time.strftime("%-I:%M%p").lower()} to '
-                        f'{end_time.strftime("%-I:%M%p").lower()}, UV Index predicted to reach '
-                        f'{self.collector.daily_forecasts_data["data"][self.day]["uv_max_index"]} '
-                        f'[{self.collector.daily_forecasts_data["data"][self.day]["uv_category"].replace("veryhigh", "very high").title()}]'
+                    local = zoneinfo.ZoneInfo(
+                        self._location_data().get("timezone", "UTC")
                     )
-            new_state = self.collector.daily_forecasts_data["data"][self.day][self.sensor_name]
-            if type(new_state) == str and len(new_state) > 251:
+                    start_time = (
+                        datetime.strptime(
+                            forecasts_data[self.day]["uv_start_time"],
+                            "%Y-%m-%dT%H:%M:%SZ",
+                        )
+                        .replace(tzinfo=utc)
+                        .astimezone(local)
+                    )
+                    end_time = (
+                        datetime.strptime(
+                            forecasts_data[self.day]["uv_end_time"],
+                            "%Y-%m-%dT%H:%M:%SZ",
+                        )
+                        .replace(tzinfo=utc)
+                        .astimezone(local)
+                    )
+                    return (
+                        f"Sun protection recommended from {start_time.strftime('%-I:%M%p').lower()} to "
+                        f"{end_time.strftime('%-I:%M%p').lower()}, UV Index predicted to reach "
+                        f"{forecasts_data[self.day]['uv_max_index']} "
+                        f"[{forecasts_data[self.day]['uv_category'].replace('veryhigh', 'very high').title()}]"
+                    )
+            new_state = forecasts_data[self.day][self.sensor_name]
+            if isinstance(new_state, str) and len(new_state) > 251:
                 self.current_state = new_state[:251] + "..."
             else:
                 self.current_state = new_state
-            if (self.sensor_name == "uv_category") and (self.current_state != None):
-                self.current_state = self.current_state.replace("veryhigh", "very high").title()
+            if (self.sensor_name == "uv_category") and (self.current_state is not None):
+                self.current_state = self.current_state.replace(
+                    "veryhigh", "very high"
+                ).title()
             return self.current_state
         else:
             return None
@@ -387,7 +477,13 @@ class ForecastSensor(SensorBase):
 class WarningsSensor(SensorBase):
     """Representation of a BOM Warnings Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,):
+    def __init__(
+        self,
+        hass_data,
+        location_name,
+        sensor_name,
+        description: SensorEntityDescription,
+    ):
         """Initialize the sensor."""
         super().__init__(hass_data, location_name, sensor_name, description)
 
@@ -404,16 +500,17 @@ class WarningsSensor(SensorBase):
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        attr = self.collector.warnings_data["metadata"]
+        warnings_data = self._warnings_data()
+        attr = warnings_data["metadata"]
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
-        attr["warnings"] = self.collector.warnings_data["data"]
+        attr["warnings"] = warnings_data["data"]
         return attr
 
     @property
     def state(self):
         """Return the state of the sensor."""
         # If there is no data for this day, return state as 'None'.
-        return len(self.collector.warnings_data["data"])
+        return len(self._warnings_data()["data"])
 
     @property
     def name(self):
@@ -424,7 +521,13 @@ class WarningsSensor(SensorBase):
 class NowLaterSensor(SensorBase):
     """Representation of a BOM Forecast Sensor."""
 
-    def __init__(self, hass_data, location_name, sensor_name, description: SensorEntityDescription,):
+    def __init__(
+        self,
+        hass_data,
+        location_name,
+        sensor_name,
+        description: SensorEntityDescription,
+    ):
         """Initialize the sensor."""
         super().__init__(hass_data, location_name, sensor_name, description)
 
@@ -441,16 +544,17 @@ class NowLaterSensor(SensorBase):
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
-        attr = self.collector.daily_forecasts_data["metadata"]
+        attr = self._daily_forecasts_metadata()
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
         return attr
 
     @property
     def state(self):
         """Return the state of the sensor."""
-        self.current_state = self.collector.daily_forecasts_data["data"][0][
-            self.sensor_name
-        ]
+        forecasts_data = self._daily_forecasts()
+        if not forecasts_data:
+            return None
+        self.current_state = forecasts_data[0][self.sensor_name]
         return self.current_state
 
     @property
@@ -458,9 +562,12 @@ class NowLaterSensor(SensorBase):
         """Return the name of the sensor."""
         return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()}"
 
+
 def calculate_dew_point(temperature, humidity):
     """Calculate dew point using temperature and humidity observations"""
     a, b = 17.27, 237.7  # Tetens equation constants
-    saturation_factor = ((a * temperature) / (b + temperature)) + math.log(humidity / 100.0)
+    saturation_factor = ((a * temperature) / (b + temperature)) + math.log(
+        humidity / 100.0
+    )
     dew_point = (b * saturation_factor) / (a - saturation_factor)
     return round(dew_point, 1)

@@ -17,6 +17,14 @@
                     "longitude": "Longitude"
                 }
             },
+            "location_source": {
+                "title": "Choose BoM Location Source",
+                "description": "Select one of the 3 closest canonical BoM places for forecasts and the observation path Home Assistant should follow. Forecasts use the BoM place model; observations may use the nearest matching station.",
+                "data": {
+                    "forecast_location_geohash": "BoM forecast place",
+                    "observation_location_geohash": "BoM observation path"
+                }
+            },
             "weather_name": {
                 "title": "Choose Weather Entity Name",
                 "description": "The weather entity in homeassistant holds all the basic weather observation and forecast information needed for most weather display cards. You can choose the name of your BoM weather entity (eg. Warrnambool for \"weather.warrnambool\" or home for \"weather.home\").",
@@ -75,6 +83,14 @@
                 "data": {
                     "latitude": "Latitude",
                     "longitude": "Longitude"
+                }
+            },
+            "location_source": {
+                "title": "Choose BoM Location Source",
+                "description": "Select one of the 3 closest canonical BoM places for forecasts and the observation path Home Assistant should follow. Forecasts use the BoM place model; observations may use the nearest matching station.",
+                "data": {
+                    "forecast_location_geohash": "BoM forecast place",
+                    "observation_location_geohash": "BoM observation path"
                 }
             },
             "weather_name": {

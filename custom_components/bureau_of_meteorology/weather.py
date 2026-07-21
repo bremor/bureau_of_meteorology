@@ -1,21 +1,19 @@
 """Platform for sensor integration."""
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, tzinfo
+from typing import Any
 
 import iso8601
 import zoneinfo
-from homeassistant.components.weather import Forecast, WeatherEntity, WeatherEntityFeature
+from homeassistant.components.weather import Forecast, WeatherEntity
+from homeassistant.components.weather.const import WeatherEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfSpeed, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from zoneinfo import ZoneInfo
 
 from . import BomDataUpdateCoordinator
 from .const import (
@@ -75,42 +73,68 @@ class WeatherBase(WeatherEntity):
         self.async_on_remove(self.coordinator.async_add_listener(self._update_callback))
         self._update_callback()
 
+    def _location_data(self) -> dict[str, Any]:
+        """Return location payload data with a non-optional type."""
+        return (self.collector.locations_data or {}).get("data", {})
+
+    def _observations_data(self) -> dict[str, Any]:
+        """Return observation payload data with a non-optional type."""
+        return (self.collector.observations_data or {}).get("data", {})
+
+    def _daily_forecasts(self) -> list[dict[str, Any]]:
+        """Return daily forecast list with a non-optional type."""
+        return (self.collector.daily_forecasts_data or {}).get("data", [])
+
+    def _hourly_forecasts(self) -> list[dict[str, Any]]:
+        """Return hourly forecast list with a non-optional type."""
+        return (self.collector.hourly_forecasts_data or {}).get("data", [])
+
     async def async_forecast_daily(self) -> list[Forecast]:
-        tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
+        location_data = self._location_data()
+        tzinfo = zoneinfo.ZoneInfo(location_data.get("timezone", "UTC"))
         return [
             Forecast(
-                datetime=iso8601.parse_date(data["date"]).astimezone(tzinfo).replace(tzinfo=None).isoformat(),
+                datetime=iso8601.parse_date(data["date"])
+                .astimezone(tzinfo)
+                .replace(tzinfo=None)
+                .isoformat(),
                 native_temperature=data["temp_max"],
                 condition=MAP_CONDITION[data["icon_descriptor"]],
-                templow=data["temp_min"],
+                native_templow=data["temp_min"],
                 native_precipitation=data["rain_amount_max"],
                 precipitation_probability=data["rain_chance"],
             )
-            for data in self.collector.daily_forecasts_data["data"]
+            for data in self._daily_forecasts()
         ]
 
     async def async_forecast_hourly(self) -> list[Forecast]:
-        tzinfo = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
+        location_data = self._location_data()
+        tzinfo = zoneinfo.ZoneInfo(location_data.get("timezone", "UTC"))
         return [
             Forecast(
-                datetime=iso8601.parse_date(data["time"]).astimezone(tzinfo).replace(tzinfo=None).isoformat(),
+                datetime=iso8601.parse_date(data["time"])
+                .astimezone(tzinfo)
+                .replace(tzinfo=None)
+                .isoformat(),
                 native_temperature=data["temp"],
                 condition=MAP_CONDITION[data["icon_descriptor"]],
                 native_precipitation=data["rain_amount_max"],
                 precipitation_probability=data["rain_chance"],
                 wind_bearing=data["wind_direction"],
                 native_wind_speed=data["wind_speed_kilometre"],
-                wind_gust_speed=data["wind_gust_speed_kilometre"],
+                native_wind_gust_speed=data["wind_gust_speed_kilometre"],
                 humidity=data["relative_humidity"],
                 uv_index=data["uv"],
             )
-            for data in self.collector.hourly_forecasts_data["data"]
+            for data in self._hourly_forecasts()
         ]
 
     @property
     def supported_features(self) -> WeatherEntityFeature:
-      """Determine supported features based on available data sets reported by WeatherKit."""
-      return WeatherEntityFeature.FORECAST_DAILY | WeatherEntityFeature.FORECAST_HOURLY
+        """Determine supported features based on available data sets reported by WeatherKit."""
+        return (
+            WeatherEntityFeature.FORECAST_DAILY | WeatherEntityFeature.FORECAST_HOURLY
+        )
 
     @callback
     def _update_callback(self) -> None:
@@ -125,12 +149,13 @@ class WeatherBase(WeatherEntity):
     @property
     def native_temperature(self):
         """Return the platform temperature."""
-        return self.collector.observations_data["data"]["temp"]
+        return self._observations_data().get("temp")
 
     @property
     def icon(self):
         """Return the icon."""
-        return self.collector.daily_forecasts_data["data"][0]["mdi_icon"]
+        forecasts = self._daily_forecasts()
+        return forecasts[0].get("mdi_icon") if forecasts else None
 
     @property
     def native_temperature_unit(self):
@@ -140,12 +165,12 @@ class WeatherBase(WeatherEntity):
     @property
     def humidity(self):
         """Return the humidity."""
-        return self.collector.observations_data["data"]["humidity"]
+        return self._observations_data().get("humidity")
 
     @property
     def native_wind_speed(self):
         """Return the wind speed."""
-        return self.collector.observations_data["data"]["wind_speed_kilometre"]
+        return self._observations_data().get("wind_speed_kilometre")
 
     @property
     def native_wind_speed_unit(self):
@@ -155,7 +180,7 @@ class WeatherBase(WeatherEntity):
     @property
     def wind_bearing(self):
         """Return the wind bearing."""
-        return self.collector.observations_data["data"]["wind_direction"]
+        return self._observations_data().get("wind_direction")
 
     @property
     def attribution(self):
@@ -163,14 +188,41 @@ class WeatherBase(WeatherEntity):
         return ATTRIBUTION
 
     @property
+    def extra_state_attributes(self):
+        """Return source details for diagnostics."""
+        attrs = {}
+        location_data = self._location_data()
+        attrs["source_location_name"] = location_data.get("name")
+        attrs["source_location_id"] = location_data.get("id")
+        attrs["source_forecasts_geohash"] = self.collector.selected_forecasts_geohash
+        attrs["source_daily_forecasts_geohash"] = (
+            self.collector.selected_daily_forecasts_geohash
+        )
+        attrs["source_hourly_forecasts_geohash"] = (
+            self.collector.selected_hourly_forecasts_geohash
+        )
+        attrs["source_observations_geohash"] = (
+            self.collector.selected_observations_geohash
+        )
+
+        station = self._observations_data().get("station")
+        if station:
+            attrs["source_station_name"] = station.get("name")
+            attrs["source_station_bom_id"] = station.get("bom_id")
+            attrs["source_station_distance_m"] = station.get("distance")
+
+        return attrs
+
+    @property
     def condition(self):
         """Return the current condition."""
-        return MAP_CONDITION[
-            self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]
-        ]
+        forecasts = self._daily_forecasts()
+        if not forecasts:
+            return None
+        return MAP_CONDITION[forecasts[0]["icon_descriptor"]]
 
     async def async_update(self):
-        await self.coordinator.async_update()
+        await self.coordinator.async_request_refresh()
 
 
 class WeatherDaily(WeatherBase):
@@ -186,7 +238,7 @@ class WeatherDaily(WeatherBase):
 
     @property
     def supported_features(self):
-      return WeatherEntityFeature.FORECAST_DAILY
+        return WeatherEntityFeature.FORECAST_DAILY
 
     @property
     def name(self):
@@ -212,7 +264,7 @@ class WeatherHourly(WeatherBase):
 
     @property
     def supported_features(self):
-      return WeatherEntityFeature.FORECAST_HOURLY
+        return WeatherEntityFeature.FORECAST_HOURLY
 
     @property
     def name(self):

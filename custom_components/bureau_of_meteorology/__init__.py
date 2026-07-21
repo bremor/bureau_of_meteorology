@@ -1,5 +1,5 @@
 """The BOM integration."""
-import asyncio
+
 import datetime
 import logging
 
@@ -15,13 +15,17 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     COLLECTOR,
+    CONF_FORECAST_LOCATION_GEOHASH,
     CONF_FORECASTS_BASENAME,
     CONF_FORECASTS_CREATE,
     CONF_FORECASTS_DAYS,
     CONF_FORECASTS_MONITORED,
+    CONF_LOCATION_GEOHASH,
+    CONF_OBSERVATION_LOCATION_GEOHASH,
     CONF_OBSERVATIONS_BASENAME,
     CONF_OBSERVATIONS_CREATE,
     CONF_OBSERVATIONS_MONITORED,
+    CONF_PLACE_ID,
     CONF_WARNINGS_BASENAME,
     CONF_WARNINGS_CREATE,
     CONF_WEATHER_NAME,
@@ -50,7 +54,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     _LOGGER.debug("Migrating from version %s", config_entry.version)
 
     if config_entry.version == 1:
-
         new = {**config_entry.data}
         if CONF_FORECASTS_BASENAME in new:
             new[CONF_WEATHER_NAME] = config_entry.data[CONF_FORECASTS_BASENAME]
@@ -64,14 +67,45 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up BOM from a config entry."""
-    collector = Collector(entry.data[CONF_LATITUDE], entry.data[CONF_LONGITUDE])
+    latitude = entry.options.get(CONF_LATITUDE, entry.data[CONF_LATITUDE])
+    longitude = entry.options.get(CONF_LONGITUDE, entry.data[CONF_LONGITUDE])
+    legacy_source_geohash = entry.options.get(
+        CONF_LOCATION_GEOHASH,
+        entry.data.get(CONF_LOCATION_GEOHASH),
+    )
+    forecast_source_geohash = entry.options.get(
+        CONF_FORECAST_LOCATION_GEOHASH,
+        entry.data.get(CONF_FORECAST_LOCATION_GEOHASH, legacy_source_geohash),
+    )
+    observation_source_geohash = entry.options.get(
+        CONF_OBSERVATION_LOCATION_GEOHASH,
+        entry.data.get(
+            CONF_OBSERVATION_LOCATION_GEOHASH,
+            forecast_source_geohash,
+        ),
+    )
+    place_id = entry.options.get(
+        CONF_PLACE_ID,
+        entry.data.get(CONF_PLACE_ID),
+    )
+    collector = Collector(
+        latitude,
+        longitude,
+        forecast_source_geohash,
+        observation_source_geohash,
+        place_id,
+    )
 
     try:
         await collector.async_update()
     except ClientConnectorError as ex:
         raise ConfigEntryNotReady from ex
 
-    coordinator = BomDataUpdateCoordinator(hass=hass, collector=collector)
+    coordinator = BomDataUpdateCoordinator(
+        hass=hass,
+        collector=collector,
+        entry_id=entry.entry_id,
+    )
     await coordinator.async_refresh()
 
     hass_data = hass.data.setdefault(DOMAIN, {})
@@ -104,7 +138,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     # if observations are enabled, keep the configured observation sensors
     if entry.options.get(CONF_OBSERVATIONS_CREATE) is True:
-        for observation in entry.options.get(CONF_OBSERVATIONS_MONITORED):
+        for observation in entry.options.get(CONF_OBSERVATIONS_MONITORED, []):
             entities_to_keep.append(
                 f"sensor.{str(entry.options.get(CONF_OBSERVATIONS_BASENAME)).lower()}_{str(observation).lower()}"
             )
@@ -112,7 +146,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     # if forecasts are enabled, keep the configured forecast sensors
     if entry.options.get(CONF_FORECASTS_CREATE) is True:
         for day in range(0, entry.options.get(CONF_FORECASTS_DAYS, 0) + 1):
-            for forecast in entry.options.get(CONF_FORECASTS_MONITORED):
+            for forecast in entry.options.get(CONF_FORECASTS_MONITORED, []):
                 if forecast in [
                     "now_now_label",
                     "now_temp_now",
@@ -162,9 +196,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 class BomDataUpdateCoordinator(DataUpdateCoordinator):
     """Data update coordinator for Bureau of Meteorology."""
 
-    def __init__(self, hass: HomeAssistant, collector: Collector) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        collector: Collector,
+        entry_id: str,
+    ) -> None:
         """Initialise the data update coordinator."""
         self.collector = collector
+        self.entry_id = entry_id
         super().__init__(
             hass=hass,
             logger=_LOGGER,
@@ -190,9 +230,7 @@ class BomDataUpdateCoordinator(DataUpdateCoordinator):
         """Remove devices with no entities."""
         entity_registry = er.async_get(self.hass)
         device_registry = dr.async_get(self.hass)
-        device_list = dr.async_entries_for_config_entry(
-            device_registry, self.config_entry.entry_id
-        )
+        device_list = dr.async_entries_for_config_entry(device_registry, self.entry_id)
 
         for device_entry in device_list:
             entities = er.async_entries_for_device(
@@ -202,5 +240,5 @@ class BomDataUpdateCoordinator(DataUpdateCoordinator):
             if not entities:
                 _LOGGER.debug("Removing orphaned device: %s", device_entry.name)
                 device_registry.async_update_device(
-                    device_entry.id, remove_config_entry_id=self.config_entry.entry_id
+                    device_entry.id, remove_config_entry_id=self.entry_id
                 )
