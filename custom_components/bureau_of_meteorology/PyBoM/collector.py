@@ -121,6 +121,14 @@ class Collector:
                 is_night = d.get("now_is_night")
                 icon_desc = d.get("icon_descriptor")
 
+                # If daily icon is null (e.g. late evening before local midnight rollover),
+                # pull descriptor from current hour in the hourly forecast feed if available:
+                if icon_desc is None and self.hourly_forecasts_data:
+                    hourly_rows = self.hourly_forecasts_data.get("data", [])
+                    if hourly_rows:
+                        icon_desc = hourly_rows[0].get("icon_descriptor")
+                        d["icon_descriptor"] = icon_desc
+
                 # Override icon_descriptor if it's night and icon is sunny/mostly_sunny
                 if is_night and icon_desc in {"sunny", "mostly_sunny"}:
                     d["icon_descriptor"] = "clear"
@@ -128,7 +136,17 @@ class Collector:
                 elif not is_night and icon_desc == "clear":
                     d["icon_descriptor"] = "sunny"
 
-            d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
+                # Retain morning minimum temperature during afternoon/evening using BOM's now_temp_later
+                if d.get("temp_min") is None and d.get("now_temp_later") is not None:
+                    d["temp_min"] = d.get("now_temp_later")
+
+                # If short_text is null, pull from current hour in hourly forecast feed
+                if d.get("short_text") is None and self.hourly_forecasts_data:
+                    hourly_rows = self.hourly_forecasts_data.get("data", [])
+                    if hourly_rows:
+                        d["short_text"] = hourly_rows[0].get("short_text")
+
+            d["mdi_icon"] = MAP_MDI_ICON.get(d.get("icon_descriptor"))
 
             # If rain amount max is None, set as rain amount min
             if d["rain_amount_max"] is None:
