@@ -1,0 +1,39 @@
+name: Coverage Comment
+
+# Runs after the untrusted "Test" workflow finishes, in the base repo's
+# privileged context. It never checks out or executes PR/fork code — it only
+# downloads the coverage artifact produced by the "Test" run and posts a
+# comment. This keeps write permissions and secrets away from untrusted code.
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    name: "Publish coverage comment"
+    runs-on: "ubuntu-latest"
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Download coverage artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: coverage-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read PR number
+        id: pr
+        run: echo "number=$(cat pr_number.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish coverage summary
+        uses: MishaKav/pytest-coverage-comment@432ac90e8d345c93e1d90ee0838b35913abc9c9b #v1.12.2
+        with:
+          pytest-xml-coverage-path: coverage.xml
+          title: Coverage Report
+          issue-number: ${{ steps.pr.outputs.number }}
