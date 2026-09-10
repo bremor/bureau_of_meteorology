@@ -2,6 +2,9 @@ __pycache__/
 
 .python_version
 .venv/
+.coverage
+coverage.xml
+.ruff_cache
 
 # Home Assistant configuration
 config/*
