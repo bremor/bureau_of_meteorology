@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+# Ensure uv is available for dependency management.
+if ! command -v uv >/dev/null 2>&1; then
+    echo "uv not found; installing with pip..."
+    python3 -m pip install --user uv
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
+# Sync the project environment and lockfile with the dev dependency group.
+uv sync --group dev

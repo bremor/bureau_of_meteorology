@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+uv run pytest -q || { status=$?; [[ $status -eq 5 ]] || exit $status; }
