@@ -1,0 +1,70 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '🚀 Features'
+    semver-increment: minor
+    when:
+      - conventional:
+          type: 'feat'
+      - labels:
+          - 'feature'
+          - 'enhancement'
+  - title: '🐛 Bug Fixes'
+    semver-increment: patch
+    when:
+      - conventional:
+          type: 'fix'
+      - labels:
+          - 'fix'
+          - 'bugfix'
+          - 'bug'
+  - title: '🧰 Maintenance'
+    semver-increment: patch
+    when:
+      - conventional:
+          types:
+            - 'chore'
+            - 'docs'
+            - 'refactor'
+            - 'perf'
+            - 'test'
+            - 'ci'
+            - 'build'
+            - 'style'
+      - label: 'chore'
+  - type: 'version-resolver'
+    semver-increment: major
+    when:
+      conventional:
+        breaking: true
+  - type: 'version-resolver'
+    semver-increment: minor
+    when:
+      conventional:
+        type: 'feat'
+  - type: 'version-resolver'
+    semver-increment: patch
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+template: |
+  ## Changes
+
+  $CHANGES
+autolabeler:
+  - label: "major"
+    title:
+      - "/^[a-z]+(\\([^)]+\\))?!:/i"
+  - label: "minor"
+    title:
+      - "/^feat(\\([^)]+\\))?:/i"
+  - label: "patch"
+    title:
+      - "/^(fix|chore|docs|refactor|perf|test|ci|build|style)(\\([^)]+\\))?:/i"
+  - label: "feature"
+    title:
+      - "/^feat(\\([^)]+\\))?:/i"
+  - label: "bug"
+    title:
+      - "/^fix(\\([^)]+\\))?:/i"
+  - label: "chore"
+    title:
+      - "/^(chore|docs|refactor|perf|test|ci|build|style)(\\([^)]+\\))?:/i"
