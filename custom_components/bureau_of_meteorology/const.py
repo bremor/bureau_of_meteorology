@@ -10,7 +10,6 @@ from homeassistant.components.sensor import (
 
 from homeassistant.const import (
     PERCENTAGE,
-    DEGREE,
     UnitOfTemperature,
     UnitOfLength,
     UnitOfSpeed,
@@ -23,6 +22,10 @@ COLLECTOR: Final = "collector"
 UPDATE_LISTENER: Final = "update_listener"
 
 CONF_WEATHER_NAME: Final = "weather_name"
+CONF_LOCATION_GEOHASH: Final = "location_geohash"
+CONF_FORECAST_LOCATION_GEOHASH: Final = "forecast_location_geohash"
+CONF_OBSERVATION_LOCATION_GEOHASH: Final = "observation_location_geohash"
+CONF_PLACE_ID: Final = "place_id"
 CONF_FORECASTS_BASENAME: Final = "forecasts_basename"
 CONF_FORECASTS_CREATE: Final = "forecasts_create"
 CONF_FORECASTS_DAYS: Final = "forecasts_days"
