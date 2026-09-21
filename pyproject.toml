@@ -12,7 +12,7 @@ dev = [
     "numpy>=1.26.0",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
-    "ruff>=0.16.7",
+    "ruff>=0.16.8",
     "pytest-cov>=7.1.0",
 ]
 
