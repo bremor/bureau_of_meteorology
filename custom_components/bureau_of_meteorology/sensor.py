@@ -241,7 +241,9 @@ class ObservationSensor(SensorBase):
             except iso8601.ParseError:
                 attr[key] = self.collector.observations_data["metadata"][key]
 
-        attr.update(self.collector.observations_data["data"]["station"])
+        station = self.collector.observations_data["data"].get("station")
+        if isinstance(station, dict):
+            attr.update(station)
         attr[ATTR_ATTRIBUTION] = ATTRIBUTION
 
         # Only proceed for max_temp or min_temp
