@@ -189,6 +189,33 @@ def test_observation_sensor_state_and_attributes_for_temperature_and_dew_point()
     assert max_sensor.extra_state_attributes["id"] == "abc"
 
 
+def test_observation_sensor_attributes_ignore_null_station_data():
+    collector = Collector(-12.463763, 130.844398)
+    collector.locations_data = {"data": {"timezone": "Australia/Darwin"}}
+    collector.observations_data = {
+        "data": {
+            "temp": 25,
+            "station": None,
+        },
+        "metadata": {"source": "test"},
+    }
+    hass_data = {
+        "collector": collector,
+        "coordinator": SimpleNamespace(
+            async_add_listener=lambda *_args, **_kwargs: None
+        ),
+    }
+
+    sensor = ObservationSensor(
+        hass_data, "Home", "temp", SensorEntityDescription(key="temp")
+    )
+
+    assert sensor.extra_state_attributes == {
+        "source": "test",
+        "attribution": "Data provided by the Australian Bureau of Meteorology",
+    }
+
+
 def test_forecast_sensor_uv_forecast_state_uses_localised_time_and_titlecase():
     collector = Collector(-12.463763, 130.844398)
     collector.locations_data = {"data": {"timezone": "Australia/Darwin"}}
