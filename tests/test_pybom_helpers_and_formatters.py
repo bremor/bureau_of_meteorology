@@ -216,6 +216,30 @@ def test_observation_sensor_attributes_ignore_null_station_data():
     }
 
 
+@pytest.mark.asyncio
+async def test_sensor_registers_coordinator_listener_once(monkeypatch):
+    collector = Collector(-12.463763, 130.844398)
+    listeners = []
+
+    def async_add_listener(callback):
+        listeners.append(callback)
+        return lambda: None
+
+    hass_data = {
+        "collector": collector,
+        "coordinator": SimpleNamespace(async_add_listener=async_add_listener),
+    }
+    sensor = ObservationSensor(
+        hass_data, "Home", "temp", SensorEntityDescription(key="temp")
+    )
+
+    monkeypatch.setattr(sensor, "_update_callback", lambda: None)
+
+    await sensor.async_added_to_hass()
+
+    assert len(listeners) == 1
+
+
 def test_forecast_sensor_uv_forecast_state_uses_localised_time_and_titlecase():
     collector = Collector(-12.463763, 130.844398)
     collector.locations_data = {"data": {"timezone": "Australia/Darwin"}}
