@@ -5,11 +5,15 @@
   "config_flow": true,
   "documentation": "https://github.com/bremor/bureau_of_meteorology",
   "issue_tracker": "https://github.com/bremor/bureau_of_meteorology/issues",
-  "requirements": ["iso8601"],
+  "requirements": [
+    "iso8601"
+  ],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},
   "dependencies": [],
-  "version": "1.3.5",
-  "codeowners": ["@bremor,@makin-things"]
+  "version": "1.3.9",
+  "codeowners": [
+    "@bremor,@makin-things"
+  ]
 }
