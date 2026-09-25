@@ -1,0 +1,29 @@
+name: Validate Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate release version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Compare tag and manifest versions
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          tag_version="${TAG#v}"
+          manifest_version=$(jq -r '.version' custom_components/bureau_of_meteorology/manifest.json)
+
+          if [[ "$tag_version" != "$manifest_version" ]]; then
+            echo "Release tag is $tag_version but manifest.json is $manifest_version"
+            exit 1
+          fi
