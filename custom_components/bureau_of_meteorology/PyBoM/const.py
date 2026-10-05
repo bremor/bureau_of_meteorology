@@ -17,7 +17,7 @@ MAP_MDI_ICON = {
     "light_showers": "mdi:weather-light-showers",
     "mostly_sunny": "mdi:weather-partly-cloudy",
     "partly_cloudy": "mdi:weather-partly-cloudy",
-    "rain": "mdi:weather-pouring",
+    "rain": "mdi:weather-rainy",
     "shower": "mdi:weather-rainy",
     "showers": "mdi:weather-rainy",
     "snow": "mdi:weather-snowy",
