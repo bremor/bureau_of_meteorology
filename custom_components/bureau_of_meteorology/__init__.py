@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     COLLECTOR,
+    CONF_EXPERIMENTAL_API,
     CONF_FORECAST_LOCATION_GEOHASH,
     CONF_FORECASTS_BASENAME,
     CONF_FORECASTS_CREATE,
@@ -94,6 +95,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         forecast_source_geohash,
         observation_source_geohash,
         place_id,
+        use_experimental_api=entry.options.get(CONF_EXPERIMENTAL_API, False),
     )
 
     try:

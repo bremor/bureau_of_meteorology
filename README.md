@@ -24,16 +24,16 @@ After you have installed the custom component (see above):
 
 ## API Source Model
 
-This integration now primarily uses BoM's newer place/grid/station APIs (`api.bom.gov.au/apikey/v1`) to match data shown on the BoM website and app.
+The integration uses BoM's legacy geohash API by default. To try the newer place/grid/station APIs (`api.bom.gov.au/apikey/v1`), open the integration settings and enable **Use experimental API**.
 
-At a high level:
+When enabled, the experimental API mode:
 
 1. A nearby `place_id` is selected during setup/options.
 2. Forecasts come from the place forecast grid (`x`, `y`) and associated text/astro endpoints.
 3. Observations come from the nearest station mapped to that place.
 4. Warnings come from coordinate-based warning endpoints.
 
-Legacy geohash (`api.weather.bom.gov.au/v1/locations/...`) remains as a compatibility fallback path, but it is no longer the primary source model.
+When experimental mode is enabled, the integration falls back to legacy geohash endpoints when place-based data is unavailable. With the option off, it uses the legacy geohash API directly.
 
 ## Troubleshooting
 

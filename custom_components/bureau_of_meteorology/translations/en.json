@@ -82,7 +82,8 @@
                 "description": "Change the latitude and longitude used to find the nearest weather station.",
                 "data": {
                     "latitude": "Latitude",
-                    "longitude": "Longitude"
+                    "longitude": "Longitude",
+                    "experimental_api": "Use experimental API"
                 }
             },
             "location_source": {

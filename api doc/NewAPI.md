@@ -4,11 +4,15 @@ This integration uses undocumented BoM JSON APIs that back <https://www.bom.gov.
 
 All examples below are trimmed response samples for Darwin City, Northern Territory.
 
-## Current API model used by the integration
+## API modes
 
-Primary data is sourced from the newer place/grid/station API family under:
+The integration uses the legacy geohash API by default. Enable **Use experimental API** in the integration settings to use the newer place/grid/station API family under:
 
 - <https://api.bom.gov.au/apikey/v1>
+
+## Experimental place/grid/station API
+
+The following endpoints are used only when **Use experimental API** is enabled. If experimental data is unavailable, the integration falls back to the corresponding legacy geohash endpoint where possible.
 
 ### 1) Find candidate places
 
@@ -334,17 +338,15 @@ Sample output:
 
 ## Integration data flow
 
-1. Setup/options resolves top candidate places near configured coordinates.
-2. Selected place_id is stored in config data.
+1. With experimental mode enabled, options resolves top candidate places near configured coordinates; otherwise it uses the legacy geohash source.
+2. In experimental mode, the selected place_id is stored in the config options.
 3. Forecasts load from place forecast grid (x,y) and text/astro endpoints.
 4. Observations use a station endpoint (and may fall back if needed).
 5. Warnings load from coordinate warnings endpoint.
 
-## Legacy geohash fallback
+## Legacy geohash API
 
-Geohash endpoints are no longer the primary model.
-
-They are still retained as a compatibility fallback path when place-based calls are unavailable or when user-selected source behavior requires it.
+These endpoints are the default API model and are also used as a fallback when experimental place-based calls cannot provide data.
 
 Legacy endpoint family:
 

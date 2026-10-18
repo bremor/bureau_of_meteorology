@@ -1,7 +1,7 @@
 """Config flow for BOM."""
 
-import math
 import logging
+import math
 
 import aiohttp
 import homeassistant.helpers.config_validation as cv
@@ -11,6 +11,7 @@ from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import callback
 
 from .const import (
+    CONF_EXPERIMENTAL_API,
     CONF_FORECAST_LOCATION_GEOHASH,
     CONF_FORECASTS_BASENAME,
     CONF_FORECASTS_CREATE,
@@ -25,8 +26,8 @@ from .const import (
     CONF_WARNINGS_CREATE,
     CONF_WEATHER_NAME,
     DOMAIN,
-    OBSERVATION_SENSOR_TYPES,
     FORECAST_SENSOR_TYPES,
+    OBSERVATION_SENSOR_TYPES,
 )
 from .PyBoM.collector import Collector
 from .PyBoM.helpers import geohash_encode
@@ -321,11 +322,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     _LOGGER.debug("Unsupported Lat/Lon")
                     errors["base"] = "bad_location"
                 else:
-                    self._location_choices = await _get_top_location_choices(
-                        user_input[CONF_LATITUDE],
-                        user_input[CONF_LONGITUDE],
-                    )
-
                     # Move onto the source selection step.
                     return await self.async_step_location_source()
 
@@ -645,6 +641,10 @@ class BomOptionsFlow(config_entries.OptionsFlow):
                         ),
                     ),
                 ): float,
+                vol.Required(
+                    CONF_EXPERIMENTAL_API,
+                    default=self.config_entry.options.get(CONF_EXPERIMENTAL_API, False),
+                ): bool,
             }
         )
 
@@ -666,10 +666,13 @@ class BomOptionsFlow(config_entries.OptionsFlow):
                     _LOGGER.debug("Unsupported Lat/Lon")
                     errors["base"] = "bad_location"
                 else:
-                    self._location_choices = await _get_top_location_choices(
-                        user_input[CONF_LATITUDE],
-                        user_input[CONF_LONGITUDE],
-                    )
+                    if self.data[CONF_EXPERIMENTAL_API]:
+                        self._location_choices = await _get_top_location_choices(
+                            user_input[CONF_LATITUDE],
+                            user_input[CONF_LONGITUDE],
+                        )
+                    else:
+                        self._location_choices = []
 
                     return await self.async_step_location_source()
 
@@ -774,8 +777,10 @@ class BomOptionsFlow(config_entries.OptionsFlow):
                     ),
                     None,
                 )
-                if selected_choice and selected_choice.get("place_id"):
-                    self.data[CONF_PLACE_ID] = selected_choice["place_id"]
+                if self.data[CONF_EXPERIMENTAL_API]:
+                    self.data[CONF_PLACE_ID] = (
+                        selected_choice.get("place_id") if selected_choice else None
+                    )
 
                 self.collector = Collector(
                     self.data[CONF_LATITUDE],
@@ -783,6 +788,7 @@ class BomOptionsFlow(config_entries.OptionsFlow):
                     forecast_geohash,
                     self.data[CONF_OBSERVATION_LOCATION_GEOHASH],
                     self.data.get(CONF_PLACE_ID),
+                    use_experimental_api=self.data[CONF_EXPERIMENTAL_API],
                 )
                 await self.collector.get_locations_data()
                 await self.collector.async_update()

@@ -93,6 +93,7 @@ class Collector:
         forecast_source_geohash=None,
         observation_source_geohash=None,
         place_id=None,
+        use_experimental_api=False,
     ):
         """Init collector."""
         self.locations_data = None
@@ -101,6 +102,7 @@ class Collector:
         self.hourly_forecasts_data = None
         self.warnings_data = None
         self.place_id = place_id
+        self.use_experimental_api = use_experimental_api
         self.latitude = latitude
         self.longitude = longitude
         # BoM API location endpoints use 7-character geohashes.
@@ -638,7 +640,7 @@ class Collector:
         headers = {"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
         try:
             async with aiohttp.ClientSession(headers=headers) as session:
-                if self.place_id:
+                if self.use_experimental_api and self.place_id:
                     data = await self._get_place_details(session)
                     if data and data.get("place"):
                         self.locations_data = self._map_place_to_locations_data(data)
@@ -732,7 +734,7 @@ class Collector:
             async with aiohttp.ClientSession(headers=headers) as session:
                 # Get location data if not already available
                 if self.locations_data is None:
-                    if self.place_id:
+                    if self.use_experimental_api and self.place_id:
                         place_details = await self._get_place_details(session)
                         if place_details and place_details.get("place"):
                             self.locations_data = self._map_place_to_locations_data(
@@ -755,7 +757,11 @@ class Collector:
                 # Get observations data. Prefer place nearest station when the
                 # observation source hasn't been explicitly overridden.
                 place_observations_loaded = False
-                if self.place_id and self._should_use_place_observations():
+                if (
+                    self.use_experimental_api
+                    and self.place_id
+                    and self._should_use_place_observations()
+                ):
                     if place_details is None:
                         place_details = await self._get_place_details(session)
                     if place_details and place_details.get("place"):
@@ -811,7 +817,7 @@ class Collector:
                             "unavailable"
                         )
 
-                if self.place_id:
+                if self.use_experimental_api and self.place_id:
                     if place_details is None:
                         place_details = await self._get_place_details(session)
                     if place_details and place_details.get("place"):
@@ -852,7 +858,7 @@ class Collector:
                             break
 
                 warnings_loaded = False
-                if self.place_id:
+                if self.use_experimental_api and self.place_id:
                     if place_details is None:
                         place_details = await self._get_place_details(session)
                     if place_details and place_details.get("place"):
