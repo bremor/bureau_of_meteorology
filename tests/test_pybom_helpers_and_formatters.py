@@ -357,3 +357,126 @@ async def test_format_hourly_forecast_data_normalizes_each_item_and_formats_rain
     assert second["rain_amount_range"] == 4
     assert second["rain_chance"] == 20
     assert second["wind_speed_knot"] == 8
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_null_icon_with_hourly_fallback():
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [{"icon_descriptor": "shower", "short_text": "Passing shower."}]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 1}, "chance": 40},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "shower"
+    assert today["short_text"] == "Passing shower."
+    assert today["mdi_icon"] == "mdi:weather-rainy"
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_null_icon_with_day_night_fallback():
+    # Night test
+    collector_night = Collector(-12.463763, 130.844398)
+    collector_night.hourly_forecasts_data = {"data": []}
+    collector_night.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector_night.format_daily_forecast_data()
+    today_night = collector_night.daily_forecasts_data["data"][0]
+    assert today_night["icon_descriptor"] == "clear"
+    assert today_night["short_text"] == "Clear."
+    assert today_night["mdi_icon"] == "mdi:weather-night"
+
+    # Daytime test
+    collector_day = Collector(-12.463763, 130.844398)
+    collector_day.hourly_forecasts_data = {"data": []}
+    collector_day.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": False},
+            }
+        ]
+    }
+    await collector_day.format_daily_forecast_data()
+    today_day = collector_day.daily_forecasts_data["data"][0]
+    assert today_day["icon_descriptor"] == "sunny"
+    assert today_day["short_text"] == "Sunny."
+    assert today_day["mdi_icon"] == "mdi:weather-sunny"
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_retains_daytime_temp_min_via_now_temp_later():
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "sunny",
+                "temp_min": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True, "temp_later": 12},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["temp_min"] == 12
+
+
+def test_weather_condition_safe_against_null_icon_and_empty_data():
+    collector = Collector(-12.463763, 130.844398)
+    hass_data = {
+        "collector": collector,
+        "coordinator": SimpleNamespace(
+            async_add_listener=lambda *_args, **_kwargs: None
+        ),
+    }
+    weather = WeatherDaily(hass_data, "Home")
+
+    # Empty data
+    collector.daily_forecasts_data = {}
+    assert weather.condition is None
+
+    # Null icon descriptor at night
+    collector.daily_forecasts_data = {
+        "data": [{"icon_descriptor": None, "now_is_night": True}]
+    }
+    assert weather.condition == "clear-night"
+
+    # Null icon descriptor during day
+    collector.daily_forecasts_data = {
+        "data": [{"icon_descriptor": None, "now_is_night": False}]
+    }
+    assert weather.condition == "sunny"
+
+    # Unknown icon descriptor
+    collector.daily_forecasts_data = {
+        "data": [{"icon_descriptor": "unknown_code", "now_is_night": True}]
+    }
+    assert weather.condition == "clear-night"

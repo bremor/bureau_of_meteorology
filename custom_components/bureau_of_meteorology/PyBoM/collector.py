@@ -116,6 +116,16 @@ class Collector:
                 is_night = d.get("now_is_night")
                 icon_desc = d.get("icon_descriptor")
 
+                # If daily icon is null/expired (e.g. late evening before local midnight):
+                if icon_desc is None:
+                    # 1. Fallback to current hour in hourly forecast stream if available
+                    if self.hourly_forecasts_data and "data" in self.hourly_forecasts_data and len(self.hourly_forecasts_data["data"]) > 0:
+                        icon_desc = self.hourly_forecasts_data["data"][0].get("icon_descriptor")
+                    # 2. Complete fallback based on day/night
+                    if not icon_desc:
+                        icon_desc = "clear" if is_night else "sunny"
+                    d["icon_descriptor"] = icon_desc
+
                 # Override icon_descriptor if it's night and icon is sunny/mostly_sunny
                 if is_night and icon_desc in {"sunny", "mostly_sunny"}:
                     d["icon_descriptor"] = "clear"
@@ -123,7 +133,18 @@ class Collector:
                 elif not is_night and icon_desc == "clear":
                     d["icon_descriptor"] = "sunny"
 
-            d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
+                # If temp_min is None (BOM clears daytime min after morning), fallback to now_temp_later (overnight min) if available
+                if d.get("temp_min") is None and d.get("now_temp_later") is not None:
+                    d["temp_min"] = d.get("now_temp_later")
+
+                # If short_text is None, fallback to hourly short_text or icon title
+                if d.get("short_text") is None:
+                    if self.hourly_forecasts_data and "data" in self.hourly_forecasts_data and len(self.hourly_forecasts_data["data"]) > 0:
+                        d["short_text"] = self.hourly_forecasts_data["data"][0].get("short_text")
+                    if not d.get("short_text") and d.get("icon_descriptor"):
+                        d["short_text"] = d["icon_descriptor"].replace("_", " ").title() + "."
+
+            d["mdi_icon"] = MAP_MDI_ICON.get(d.get("icon_descriptor"))
 
             # If rain amount max is None, set as rain amount min
             if d["rain_amount_max"] is None:

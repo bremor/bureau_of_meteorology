@@ -165,9 +165,14 @@ class WeatherBase(WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        return MAP_CONDITION[
-            self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]
-        ]
+        daily_data = self.collector.daily_forecasts_data.get("data", [])
+        if not daily_data:
+            return None
+        icon_desc = daily_data[0].get("icon_descriptor")
+        if not icon_desc:
+            is_night = daily_data[0].get("now_is_night")
+            return "clear-night" if is_night else "sunny"
+        return MAP_CONDITION.get(icon_desc, "clear-night" if daily_data[0].get("now_is_night") else "sunny")
 
     async def async_update(self):
         await self.coordinator.async_update()
