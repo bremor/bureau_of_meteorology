@@ -1,7 +1,7 @@
-import asyncio
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -11,6 +11,12 @@ if str(ROOT) not in sys.path:
 
 from homeassistant.components.sensor import SensorEntityDescription
 
+from custom_components.bureau_of_meteorology import config_flow
+from custom_components.bureau_of_meteorology.config_flow import (
+    BomOptionsFlow,
+    ConfigFlow,
+)
+from custom_components.bureau_of_meteorology.const import CONF_EXPERIMENTAL_API
 from custom_components.bureau_of_meteorology.PyBoM.collector import Collector
 from custom_components.bureau_of_meteorology.PyBoM.helpers import (
     flatten_dict,
@@ -24,6 +30,18 @@ from custom_components.bureau_of_meteorology.sensor import (
 from custom_components.bureau_of_meteorology.weather import WeatherDaily, WeatherHourly
 
 
+def _place_details():
+    return {
+        "place": {
+            "id": "place-1",
+            "name": "Darwin City",
+            "state": {"abbrev": "NT"},
+            "timezone": "Australia/Darwin",
+            "coordinate": {"latitude": -12.46, "longitude": 130.84},
+        }
+    }
+
+
 @pytest.mark.parametrize(
     ("latitude", "longitude", "precision", "expected"),
     [
@@ -34,6 +52,226 @@ from custom_components.bureau_of_meteorology.weather import WeatherDaily, Weathe
 )
 def test_geohash_encode_known_values(latitude, longitude, precision, expected):
     assert geohash_encode(latitude, longitude, precision) == expected
+
+
+@pytest.mark.asyncio
+async def test_collector_uses_legacy_location_endpoint_with_place_id_when_disabled(
+    monkeypatch,
+):
+    collector = Collector(-12.46, 130.84, place_id="place-1")
+    legacy_fetch = AsyncMock(return_value={"data": {"name": "Darwin City"}})
+    place_details = AsyncMock(return_value=_place_details())
+    monkeypatch.setattr(collector, "_fetch_with_retry", legacy_fetch)
+    monkeypatch.setattr(collector, "_get_place_details", place_details)
+
+    await collector.get_locations_data()
+
+    assert place_details.await_count == 0
+    assert legacy_fetch.await_args.args[1] == (
+        f"https://api.weather.bom.gov.au/v1/locations/{collector.forecast_geohash7}"
+    )
+    assert collector.locations_data["data"]["name"] == "Darwin City"
+
+
+@pytest.mark.asyncio
+async def test_collector_uses_place_details_when_experimental_api_is_enabled(
+    monkeypatch,
+):
+    collector = Collector(-12.46, 130.84, place_id="place-1", use_experimental_api=True)
+    place_details = AsyncMock(return_value=_place_details())
+    legacy_fetch = AsyncMock()
+    monkeypatch.setattr(collector, "_get_place_details", place_details)
+    monkeypatch.setattr(collector, "_fetch_with_retry", legacy_fetch)
+
+    await collector.get_locations_data()
+
+    assert place_details.await_count == 1
+    assert legacy_fetch.await_count == 0
+    assert collector.locations_data["data"]["id"] == "place-1"
+
+
+@pytest.mark.asyncio
+async def test_collector_runtime_uses_legacy_endpoints_with_place_id_when_disabled(
+    monkeypatch,
+):
+    collector = Collector(-12.46, 130.84, place_id="place-1")
+    requested_urls = []
+
+    async def fetch_legacy(_session, url, _cache_key):
+        requested_urls.append(url)
+
+    place_details = AsyncMock(return_value=_place_details())
+    monkeypatch.setattr(collector, "_fetch_with_retry", fetch_legacy)
+    monkeypatch.setattr(collector, "_get_place_details", place_details)
+
+    await collector.async_update()
+
+    assert place_details.await_count == 0
+    assert requested_urls
+    assert all("api.weather.bom.gov.au" in url for url in requested_urls)
+
+
+@pytest.mark.asyncio
+async def test_collector_runtime_uses_experimental_endpoints_when_enabled(monkeypatch):
+    collector = Collector(-12.46, 130.84, place_id="place-1", use_experimental_api=True)
+    collector.daily_forecasts_data = {"data": []}
+    collector.hourly_forecasts_data = {"data": []}
+    place_details = AsyncMock(return_value=_place_details())
+    observations = AsyncMock(return_value=True)
+    forecasts = AsyncMock(return_value=None)
+    warnings = AsyncMock(return_value=True)
+    legacy_fetch = AsyncMock()
+
+    monkeypatch.setattr(collector, "_get_place_details", place_details)
+    monkeypatch.setattr(collector, "_async_update_place_observations", observations)
+    monkeypatch.setattr(collector, "_async_update_place_forecasts", forecasts)
+    monkeypatch.setattr(collector, "_async_update_place_warnings", warnings)
+    monkeypatch.setattr(collector, "_fetch_with_retry", legacy_fetch)
+
+    await collector.async_update()
+
+    assert place_details.await_count == 1
+    assert observations.await_count == 1
+    assert forecasts.await_count == 1
+    assert warnings.await_count == 1
+    assert legacy_fetch.await_count == 0
+
+
+@pytest.mark.asyncio
+async def test_options_flow_defaults_experimental_api_to_disabled():
+    config_entry = SimpleNamespace(options={}, data={})
+    flow = BomOptionsFlow(config_entry)
+    flow.config_entry = config_entry
+    flow.hass = SimpleNamespace(
+        config=SimpleNamespace(latitude=-12.46, longitude=130.84)
+    )
+    flow.async_show_form = lambda **kwargs: kwargs
+
+    result = await flow.async_step_init()
+
+    option_key = next(
+        key for key in result["data_schema"].schema if key == CONF_EXPERIMENTAL_API
+    )
+    assert option_key.default() is False
+
+
+@pytest.mark.asyncio
+async def test_initial_config_flow_does_not_discover_experimental_places(monkeypatch):
+    flow = ConfigFlow()
+    flow.hass = SimpleNamespace(
+        config=SimpleNamespace(latitude=-12.46, longitude=130.84)
+    )
+    collector = SimpleNamespace(
+        locations_data={"data": {"name": "Darwin City"}},
+        get_locations_data=AsyncMock(),
+    )
+    discover_places = AsyncMock()
+    monkeypatch.setattr(config_flow, "Collector", lambda *_args, **_kwargs: collector)
+    monkeypatch.setattr(config_flow, "_get_top_location_choices", discover_places)
+    monkeypatch.setattr(
+        flow,
+        "async_step_location_source",
+        AsyncMock(return_value={"step_id": "location_source"}),
+    )
+
+    result = await flow.async_step_user({"latitude": -12.46, "longitude": 130.84})
+
+    assert result["step_id"] == "location_source"
+    assert discover_places.await_count == 0
+
+
+@pytest.mark.asyncio
+async def test_initial_config_flow_selects_location_without_experimental_setting(
+    monkeypatch,
+):
+    flow = ConfigFlow()
+    flow.data = {"latitude": -12.46, "longitude": 130.84}
+    flow._location_choices = [
+        {
+            "forecast_geohash": "qvv117j",
+            "observation_geohash": "qvv117j",
+            "forecast_label": "Darwin City",
+            "observation_label": "Darwin City",
+            "has_observations": False,
+        }
+    ]
+    collector = SimpleNamespace(
+        get_locations_data=AsyncMock(),
+        async_update=AsyncMock(),
+    )
+    collector_calls = []
+    monkeypatch.setattr(
+        config_flow,
+        "Collector",
+        lambda *args, **kwargs: collector_calls.append((args, kwargs)) or collector,
+    )
+    monkeypatch.setattr(
+        flow,
+        "async_step_weather_name",
+        AsyncMock(return_value={"step_id": "weather_name"}),
+    )
+
+    result = await flow.async_step_location_source(
+        {
+            "forecast_location_geohash": "qvv117j",
+            "observation_location_geohash": "qvv117j",
+        }
+    )
+
+    assert result["step_id"] == "weather_name"
+    assert CONF_EXPERIMENTAL_API not in flow.data
+    assert collector_calls[-1][1] == {}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("experimental_api", [False, True])
+async def test_options_flow_only_discovers_places_when_enabled(
+    monkeypatch, experimental_api
+):
+    config_entry = SimpleNamespace(options={}, data={})
+    flow = BomOptionsFlow(config_entry)
+    flow.config_entry = config_entry
+    flow.hass = SimpleNamespace(
+        config=SimpleNamespace(latitude=-12.46, longitude=130.84)
+    )
+    collector = SimpleNamespace(
+        locations_data={"data": {"name": "Darwin City"}},
+        get_locations_data=AsyncMock(),
+    )
+    discover_places = AsyncMock(return_value=[])
+    monkeypatch.setattr(config_flow, "Collector", lambda *_args, **_kwargs: collector)
+    monkeypatch.setattr(config_flow, "_get_top_location_choices", discover_places)
+    monkeypatch.setattr(
+        flow,
+        "async_step_location_source",
+        AsyncMock(return_value={"type": "form", "step_id": "location_source"}),
+    )
+
+    await flow.async_step_init(
+        {
+            "latitude": -12.46,
+            "longitude": 130.84,
+            CONF_EXPERIMENTAL_API: experimental_api,
+        }
+    )
+
+    assert discover_places.await_count == int(experimental_api)
+    assert flow.data[CONF_EXPERIMENTAL_API] is experimental_api
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("experimental_api", [False, True])
+async def test_options_flow_persists_experimental_api_choice(experimental_api):
+    config_entry = SimpleNamespace(options={}, data={})
+    flow = BomOptionsFlow(config_entry)
+    flow.config_entry = config_entry
+    flow.data = {CONF_EXPERIMENTAL_API: experimental_api}
+    flow.collector = SimpleNamespace(locations_data={"data": {"name": "Darwin"}})
+    flow.async_create_entry = lambda **kwargs: kwargs
+
+    result = await flow.async_step_warnings_basename({"warnings_basename": "Darwin"})
+
+    assert result["data"][CONF_EXPERIMENTAL_API] is experimental_api
 
 
 def test_flatten_dict_mutates_in_place_and_keeps_none_values():

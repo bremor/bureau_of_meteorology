@@ -1,7 +1,5 @@
 """Helpers functions for PyBom."""
-import asyncio
-import logging
-import socket
+
 
 def flatten_dict(keys, dict):
     for key in keys:
@@ -11,8 +9,9 @@ def flatten_dict(keys, dict):
                 dict[key + "_" + inner_key] = value
     return dict
 
+
 def geohash_encode(latitude, longitude, precision=6):
-    base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
+    base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
     lat_interval = (-90.0, 90.0)
     lon_interval = (-180.0, 180.0)
     geohash = []
@@ -42,4 +41,4 @@ def geohash_encode(latitude, longitude, precision=6):
             geohash += base32[ch]
             bit = 0
             ch = 0
-    return ''.join(geohash)
+    return "".join(geohash)
