@@ -7,7 +7,7 @@ requires-python = ">=3.11,<3.12"
 dev = [
     "iso8601>=2.1.0",
     "homeassistant==2023.9.0",
-    "python-dateutil>=2.9.0.post0",
+    "python-dateutil>=3.0.0",
     "mutagen>=1.47.0",
     "numpy>=1.26.0",
     "pytest>=8.0.0",
