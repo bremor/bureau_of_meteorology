@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, tzinfo
+from datetime import datetime, timezone, tzinfo
 
 import iso8601
 import zoneinfo
@@ -29,6 +29,8 @@ from .const import (
     MODEL_NAME,
 )
 from .PyBoM.collector import Collector
+from .PyBoM.const import MAP_MDI_ICON
+from .conditions import resolve_condition
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -123,6 +125,11 @@ class WeatherBase(WeatherEntity):
         return False
 
     @property
+    def available(self) -> bool:
+        """Do not publish expired observations after a failed coordinator update."""
+        return self.coordinator.last_update_success
+
+    @property
     def native_temperature(self):
         """Return the platform temperature."""
         return self.collector.observations_data["data"]["temp"]
@@ -130,7 +137,8 @@ class WeatherBase(WeatherEntity):
     @property
     def icon(self):
         """Return the icon."""
-        return self.collector.daily_forecasts_data["data"][0]["mdi_icon"]
+        descriptor, _ = self._current_condition()
+        return MAP_MDI_ICON.get(descriptor)
 
     @property
     def native_temperature_unit(self):
@@ -165,9 +173,25 @@ class WeatherBase(WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        return MAP_CONDITION[
-            self.collector.daily_forecasts_data["data"][0]["icon_descriptor"]
-        ]
+        descriptor, _ = self._current_condition()
+        return MAP_CONDITION.get(descriptor)
+
+    def _current_condition(self):
+        """Select data for the current date or hour, with a bounded cache age."""
+        return resolve_condition(
+            self.collector.daily_forecasts_data,
+            self.collector.hourly_forecasts_data,
+            self.collector._cache,
+            (self.collector.locations_data or {}).get("data", {}).get("timezone"),
+            MAP_CONDITION,
+            datetime.now(timezone.utc),
+        )
+
+    @property
+    def extra_state_attributes(self):
+        """Make a fallback or missing condition visible to dashboards and users."""
+        _, source = self._current_condition()
+        return {"condition_source": source}
 
     async def async_update(self):
         await self.coordinator.async_update()
