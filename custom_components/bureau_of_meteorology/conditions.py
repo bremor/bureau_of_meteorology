@@ -46,7 +46,7 @@ def resolve_condition(daily, hourly, cache, location_timezone, valid_descriptors
                 stamp is not None
                 and stamp.astimezone(local_zone).date()
                 == now.astimezone(local_zone).date()
-                and descriptor is not None
+                and isinstance(descriptor, str)
                 and descriptor in valid_descriptors
             ):
                 return descriptor, "daily"
@@ -58,7 +58,7 @@ def resolve_condition(daily, hourly, cache, location_timezone, valid_descriptors
             if (
                 stamp is not None
                 and stamp <= now < stamp + timedelta(hours=1)
-                and descriptor is not None
+                and isinstance(descriptor, str)
                 and descriptor in valid_descriptors
             ):
                 return descriptor, "hourly"

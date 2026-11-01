@@ -32,6 +32,9 @@ class Collector:
         self.daily_forecasts_data = None
         self.hourly_forecasts_data = None
         self.warnings_data = None
+        # Cached payloads may survive a failed refresh. Keep its outcome separate
+        # so consumers do not mistake retained data for a successful update.
+        self.last_update_success = False
         self.geohash7 = geohash_encode(latitude, longitude)
         self.geohash6 = self.geohash7[:6]
         # Cache storage with timestamps
@@ -67,6 +70,7 @@ class Collector:
                 if attempt < MAX_RETRIES - 1:
                     await asyncio.sleep(wait_time)
                 else:
+                    self.last_update_success = False
                     _LOGGER.error(
                         f"Error requesting API data: {err}. "
                         "Using cached data if available."
@@ -82,6 +86,7 @@ class Collector:
                     else:
                         _LOGGER.error(f"No cached {cache_key} data available")
                         return None
+        self.last_update_success = False
         return None
     
     async def get_locations_data(self):
@@ -169,6 +174,8 @@ class Collector:
     async def async_update(self):
         """Refresh the data on the collector object."""
         headers = {"User-Agent": "MakeThisAPIOpenSource/1.0.0"}
+        # This is inside Throttle: a skipped call must preserve the last outcome.
+        self.last_update_success = True
         
         try:
             async with aiohttp.ClientSession(headers=headers) as session:
@@ -222,5 +229,6 @@ class Collector:
                     self.warnings_data = data
                     
         except Exception as err:
+            self.last_update_success = False
             _LOGGER.error(f"Unexpected error during async_update: {err}")
             # Even if we have an unexpected error, we still have our cached data

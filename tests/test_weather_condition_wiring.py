@@ -74,6 +74,7 @@ class WeatherWiringTests(unittest.TestCase):
         self.weather = namespace["WeatherBase"]()
         self.weather.coordinator = SimpleNamespace(last_update_success=True)
         self.weather.collector = SimpleNamespace(
+            last_update_success=True,
             locations_data={"data": {"timezone": "Australia/Perth"}},
             daily_forecasts_data={
                 "data": [{"date": "2026-10-21T16:00:00Z", "icon_descriptor": None}]
@@ -117,6 +118,15 @@ class WeatherWiringTests(unittest.TestCase):
         self.weather.coordinator.last_update_success = False
         self.assertFalse(self.weather.available)
         self.weather.coordinator.last_update_success = True
+        self.assertTrue(self.weather.available)
+
+    def test_swallowed_collector_failure_is_unavailable_until_recovery(self):
+        # The coordinator sees a normally returned coroutine even when the
+        # collector has kept its cache after exhausted retries.
+        self.weather.collector.last_update_success = False
+        self.assertTrue(self.weather.coordinator.last_update_success)
+        self.assertFalse(self.weather.available)
+        self.weather.collector.last_update_success = True
         self.assertTrue(self.weather.available)
 
     def test_expired_fallback_cannot_be_presented_as_current(self):

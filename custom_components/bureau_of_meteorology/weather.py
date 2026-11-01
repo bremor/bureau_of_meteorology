@@ -126,8 +126,11 @@ class WeatherBase(WeatherEntity):
 
     @property
     def available(self) -> bool:
-        """Do not publish expired observations after a failed coordinator update."""
-        return self.coordinator.last_update_success
+        """Do not publish retained observations after a failed refresh."""
+        return (
+            self.coordinator.last_update_success
+            and self.collector.last_update_success
+        )
 
     @property
     def native_temperature(self):

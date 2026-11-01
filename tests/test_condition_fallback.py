@@ -88,6 +88,18 @@ class ConditionTests(unittest.TestCase):
         self.hourly["data"].insert(1, "invalid")
         self.assertEqual(self.resolve(), ("rain", "hourly"))
 
+    def test_malformed_daily_descriptors_allow_current_hour_fallback(self):
+        for descriptor in ([], {}, 42, True):
+            with self.subTest(descriptor=descriptor):
+                self.daily["data"][0]["icon_descriptor"] = descriptor
+                self.assertEqual(self.resolve(), ("rain", "hourly"))
+
+    def test_malformed_hourly_descriptors_remain_unknown(self):
+        for descriptor in ([], {}, 42, True):
+            with self.subTest(descriptor=descriptor):
+                self.hourly["data"][1]["icon_descriptor"] = descriptor
+                self.assertEqual(self.resolve(), (None, "unavailable"))
+
     def test_invalid_timezone_does_not_assume_a_calendar_date(self):
         self.assertEqual(
             module.resolve_condition(
