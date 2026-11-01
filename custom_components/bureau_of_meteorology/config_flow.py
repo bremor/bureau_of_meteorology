@@ -273,6 +273,7 @@ class BomOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialise the options flow."""
         super().__init__()
+        self._config_entry = config_entry
         self.data = {}
 
     async def async_step_init(self, user_input=None):
@@ -281,18 +282,18 @@ class BomOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_LATITUDE,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_LATITUDE,
-                        self.config_entry.data.get(
+                        self._config_entry.data.get(
                             CONF_LATITUDE, self.hass.config.latitude
                         ),
                     ),
                 ): float,
                 vol.Required(
                     CONF_LONGITUDE,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_LONGITUDE,
-                        self.config_entry.data.get(
+                        self._config_entry.data.get(
                             CONF_LONGITUDE, self.hass.config.longitude
                         ),
                     ),
@@ -339,9 +340,9 @@ class BomOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_WEATHER_NAME,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_WEATHER_NAME,
-                        self.config_entry.data.get(
+                        self._config_entry.data.get(
                             CONF_WEATHER_NAME,
                             self.collector.locations_data["data"]["name"],
                         ),
@@ -375,23 +376,23 @@ class BomOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_OBSERVATIONS_CREATE,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_OBSERVATIONS_CREATE,
-                        self.config_entry.data.get(CONF_OBSERVATIONS_CREATE, True),
+                        self._config_entry.data.get(CONF_OBSERVATIONS_CREATE, True),
                     ),
                 ): bool,
                 vol.Required(
                     CONF_FORECASTS_CREATE,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_FORECASTS_CREATE,
-                        self.config_entry.data.get(CONF_FORECASTS_CREATE, True),
+                        self._config_entry.data.get(CONF_FORECASTS_CREATE, True),
                     ),
                 ): bool,
                 vol.Required(
                     CONF_WARNINGS_CREATE,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_WARNINGS_CREATE,
-                        self.config_entry.data.get(CONF_WARNINGS_CREATE, True),
+                        self._config_entry.data.get(CONF_WARNINGS_CREATE, True),
                     ),
                 ): bool,
             }
@@ -437,9 +438,9 @@ class BomOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_OBSERVATIONS_BASENAME,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_OBSERVATIONS_BASENAME,
-                        self.config_entry.data.get(
+                        self._config_entry.data.get(
                             CONF_OBSERVATIONS_BASENAME,
                             self.collector.observations_data["data"]["station"]["name"],
                         ),
@@ -447,9 +448,9 @@ class BomOptionsFlow(config_entries.OptionsFlow):
                 ): str,
                 vol.Required(
                     CONF_OBSERVATIONS_MONITORED,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_OBSERVATIONS_MONITORED,
-                        self.config_entry.data.get(CONF_OBSERVATIONS_MONITORED, None),
+                        self._config_entry.data.get(CONF_OBSERVATIONS_MONITORED, None),
                     ),
                 ): cv.multi_select(monitored),
             }
@@ -492,9 +493,9 @@ class BomOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_FORECASTS_BASENAME,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_FORECASTS_BASENAME,
-                        self.config_entry.data.get(
+                        self._config_entry.data.get(
                             CONF_FORECASTS_BASENAME,
                             self.collector.locations_data["data"]["name"],
                         ),
@@ -502,16 +503,16 @@ class BomOptionsFlow(config_entries.OptionsFlow):
                 ): str,
                 vol.Required(
                     CONF_FORECASTS_MONITORED,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_FORECASTS_MONITORED,
-                        self.config_entry.data.get(CONF_FORECASTS_MONITORED, None),
+                        self._config_entry.data.get(CONF_FORECASTS_MONITORED, None),
                     ),
                 ): cv.multi_select(monitored),
                 vol.Required(
                     CONF_FORECASTS_DAYS,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_FORECASTS_DAYS,
-                        self.config_entry.data.get(CONF_FORECASTS_DAYS, 0),
+                        self._config_entry.data.get(CONF_FORECASTS_DAYS, 0),
                     ),
                 ): vol.All(vol.Coerce(int), vol.Range(0, 7)),
             }
@@ -545,9 +546,9 @@ class BomOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Required(
                     CONF_WARNINGS_BASENAME,
-                    default=self.config_entry.options.get(
+                    default=self._config_entry.options.get(
                         CONF_WARNINGS_BASENAME,
-                        self.config_entry.data.get(
+                        self._config_entry.data.get(
                             CONF_WARNINGS_BASENAME,
                             self.collector.locations_data["data"]["name"],
                         ),
