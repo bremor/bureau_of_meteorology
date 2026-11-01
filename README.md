@@ -22,6 +22,10 @@ After you have installed the custom component (see above):
 3. Search for `Bureau of Meteorology`. (If you don't see it, try refreshing your browser page to reload the cache.)
 4. Click `Submit` so add the integration.
 
+To update an existing location or its sensors, open the integration and click
+`Configure`. Saved options are used as defaults, falling back to the original
+configuration for settings that have not been changed.
+
 ## Troubleshooting
 
 Please set your logging for the custom_component to debug:
