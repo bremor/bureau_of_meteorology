@@ -2,6 +2,7 @@
   "domain": "bureau_of_meteorology",
   "name": "Bureau of Meteorology",
   "integration_type": "service",
+  "iot_class": "cloud_poll",
   "config_flow": true,
   "documentation": "https://github.com/bremor/bureau_of_meteorology",
   "issue_tracker": "https://github.com/bremor/bureau_of_meteorology/issues",
