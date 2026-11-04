@@ -22,6 +22,33 @@ MAX_RETRIES = 3
 RETRY_DELAY_BASE = 2  # seconds
 MAX_CACHE_AGE = 86400  # 24 hours in seconds
 
+
+def _get_current_hourly_row(hourly_data, now=None):
+    """Find the hourly forecast row covering the current time, or fallback to first row."""
+    if not hourly_data or "data" not in hourly_data or not isinstance(hourly_data["data"], list):
+        return None
+    rows = [r for r in hourly_data["data"] if isinstance(r, dict)]
+    if not rows:
+        return None
+    if now is None:
+        now = datetime.datetime.now(datetime.timezone.utc)
+    for row in rows:
+        time_str = row.get("time")
+        if not time_str:
+            continue
+        try:
+            stamp = datetime.datetime.fromisoformat(time_str)
+        except (ValueError, TypeError):
+            continue
+        if stamp.tzinfo is not None:
+            target_now = now if now.tzinfo is not None else now.replace(tzinfo=stamp.tzinfo)
+            if stamp <= target_now < stamp + datetime.timedelta(hours=1):
+                return row
+        elif now.tzinfo is None and stamp <= now < stamp + datetime.timedelta(hours=1):
+            return row
+    return rows[0]
+
+
 class Collector:
     """Collector for PyBoM."""
 
@@ -121,13 +148,13 @@ class Collector:
                 is_night = d.get("now_is_night")
                 icon_desc = d.get("icon_descriptor")
 
+                hourly_row = _get_current_hourly_row(self.hourly_forecasts_data)
+
                 # If daily icon is null (e.g. late evening before local midnight rollover),
                 # pull descriptor from current hour in the hourly forecast feed if available:
-                if icon_desc is None and self.hourly_forecasts_data:
-                    hourly_rows = self.hourly_forecasts_data.get("data", [])
-                    if hourly_rows:
-                        icon_desc = hourly_rows[0].get("icon_descriptor")
-                        d["icon_descriptor"] = icon_desc
+                if icon_desc is None and hourly_row:
+                    icon_desc = hourly_row.get("icon_descriptor")
+                    d["icon_descriptor"] = icon_desc
 
                 # Override icon_descriptor if it's night and icon is sunny/mostly_sunny
                 if is_night and icon_desc in {"sunny", "mostly_sunny"}:
@@ -141,10 +168,8 @@ class Collector:
                     d["temp_min"] = d.get("now_temp_later")
 
                 # If short_text is null, pull from current hour in hourly forecast feed
-                if d.get("short_text") is None and self.hourly_forecasts_data:
-                    hourly_rows = self.hourly_forecasts_data.get("data", [])
-                    if hourly_rows:
-                        d["short_text"] = hourly_rows[0].get("short_text")
+                if d.get("short_text") is None and hourly_row:
+                    d["short_text"] = hourly_row.get("short_text")
 
             d["mdi_icon"] = MAP_MDI_ICON.get(d.get("icon_descriptor"))
 
@@ -176,7 +201,7 @@ class Collector:
             elif not is_night and icon_desc == "clear":
                 d["icon_descriptor"] = "sunny"
 
-            d["mdi_icon"] = MAP_MDI_ICON[d["icon_descriptor"]]
+            d["mdi_icon"] = MAP_MDI_ICON.get(d.get("icon_descriptor"))
 
             flatten_dict(["amount"], d["rain"])
             flatten_dict(["rain", "wind"], d)
@@ -223,14 +248,6 @@ class Collector:
                         self.observations_data["data"]["gust_speed_kilometre"] = "unavailable"
                         self.observations_data["data"]["gust_speed_knot"] = "unavailable"
 
-                # Get daily forecast data
-                data = await self._fetch_with_retry(
-                    session, URL_BASE + self.geohash6 + URL_DAILY, "daily_forecasts"
-                )
-                if data:
-                    self.daily_forecasts_data = data
-                    await self.format_daily_forecast_data()
-
                 # Get hourly forecast data
                 data = await self._fetch_with_retry(
                     session, URL_BASE + self.geohash6 + URL_HOURLY, "hourly_forecasts"
@@ -238,6 +255,14 @@ class Collector:
                 if data:
                     self.hourly_forecasts_data = data
                     await self.format_hourly_forecast_data()
+
+                # Get daily forecast data
+                data = await self._fetch_with_retry(
+                    session, URL_BASE + self.geohash6 + URL_DAILY, "daily_forecasts"
+                )
+                if data:
+                    self.daily_forecasts_data = data
+                    await self.format_daily_forecast_data()
 
                 # Get warnings data
                 data = await self._fetch_with_retry(
