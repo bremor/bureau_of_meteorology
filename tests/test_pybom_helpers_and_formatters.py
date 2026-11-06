@@ -357,3 +357,135 @@ async def test_format_hourly_forecast_data_normalizes_each_item_and_formats_rain
     assert second["rain_amount_range"] == 4
     assert second["rain_chance"] == 20
     assert second["wind_speed_knot"] == 8
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_null_icon_with_hourly_fallback():
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [{"icon_descriptor": "shower", "short_text": "Passing shower."}]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 1}, "chance": 40},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "shower"
+    assert today["short_text"] == "Passing shower."
+    assert today["mdi_icon"] == "mdi:weather-rainy"
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_selects_current_hour_by_timestamp():
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    past = (now - timedelta(hours=2)).isoformat()
+    current = now.isoformat()
+    future = (now + timedelta(hours=2)).isoformat()
+
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [
+            {"time": past, "icon_descriptor": "cloudy", "short_text": "Past cloudy."},
+            {"time": current, "icon_descriptor": "shower", "short_text": "Current shower."},
+            {"time": future, "icon_descriptor": "rain", "short_text": "Future rain."},
+        ]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 1}, "chance": 40},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "shower"
+    assert today["short_text"] == "Current shower."
+    assert today["mdi_icon"] == "mdi:weather-rainy"
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_null_icon_without_hourly_fallback():
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {"data": []}
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] is None
+    assert today["short_text"] is None
+    assert today["mdi_icon"] is None
+
+
+@pytest.mark.asyncio
+async def test_format_hourly_forecast_data_handles_null_icon_safely():
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "is_night": True,
+                "rain": {"amount": {"min": 0, "max": 1}},
+                "wind": {"speed_kilometre": 10},
+            },
+            {
+                "icon_descriptor": "unrecognized_code",
+                "is_night": False,
+                "rain": {"amount": {"min": 0, "max": 1}},
+                "wind": {"speed_kilometre": 10},
+            },
+        ]
+    }
+    await collector.format_hourly_forecast_data()
+    first = collector.hourly_forecasts_data["data"][0]
+    second = collector.hourly_forecasts_data["data"][1]
+    assert first["icon_descriptor"] is None
+    assert first["mdi_icon"] is None
+    assert second["icon_descriptor"] == "unrecognized_code"
+    assert second["mdi_icon"] is None
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_retains_daytime_temp_min_via_now_temp_later():
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "sunny",
+                "temp_min": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True, "temp_later": 12},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["temp_min"] == 12
