@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -56,6 +57,16 @@ def make_flow(data, options):
         async_update=AsyncMock(),
     )
     return flow
+
+
+def test_cloud_polling_is_declared_in_manifest():
+    manifest_path = (
+        ROOT / "custom_components" / "bureau_of_meteorology" / "manifest.json"
+    )
+    manifest = json.loads(manifest_path.read_text())
+
+    assert manifest["iot_class"] == "cloud_poll"
+    assert "CONNECTION_CLASS" not in ConfigFlow.__dict__
 
 
 @pytest.mark.asyncio
