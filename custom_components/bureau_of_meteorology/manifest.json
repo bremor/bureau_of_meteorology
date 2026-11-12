@@ -13,7 +13,7 @@
   "zeroconf": [],
   "homekit": {},
   "dependencies": [],
-  "version": "1.4.0",
+  "version": "1.4.1",
   "codeowners": [
     "@bremor,@makin-things"
   ]
