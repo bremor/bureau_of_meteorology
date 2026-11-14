@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timedelta, timezone
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,7 +12,10 @@ if str(ROOT) not in sys.path:
 
 from homeassistant.components.sensor import SensorEntityDescription
 
-from custom_components.bureau_of_meteorology.PyBoM.collector import Collector
+from custom_components.bureau_of_meteorology.PyBoM.collector import (
+    Collector,
+    _get_current_hourly_row,
+)
 from custom_components.bureau_of_meteorology.PyBoM.helpers import (
     flatten_dict,
     geohash_encode,
@@ -567,6 +571,252 @@ async def test_format_daily_forecast_retains_temp_min_from_now_sliding_window_mo
     await collector.format_daily_forecast_data()
     today = collector.daily_forecasts_data["data"][0]
     assert today["temp_min"] == 13
+
+
+def test_get_current_hourly_row_handles_null_empty_and_malformed_structures():
+    """Verify null-safety for all forms of missing or non-list hourly forecast data."""
+    assert _get_current_hourly_row(None) is None
+    assert _get_current_hourly_row({}) is None
+    assert _get_current_hourly_row({"data": None}) is None
+    assert _get_current_hourly_row({"data": []}) is None
+    assert _get_current_hourly_row({"data": "not-a-list"}) is None
+    assert _get_current_hourly_row({"data": [None, 123, "string"]}) is None
+
+
+def test_get_current_hourly_row_matches_time_window_and_timezone_conversions():
+    """Verify row selection when now falls within stamp <= now < stamp + 1 hour."""
+    t0 = datetime(2026, 11, 14, 12, 0, 0, tzinfo=timezone.utc)
+    t1 = t0 + timedelta(hours=1)
+    t2 = t0 + timedelta(hours=2)
+
+    hourly_data = {
+        "data": [
+            {"time": t0.isoformat(), "hour_id": 0},
+            {"time": t1.isoformat(), "hour_id": 1},
+            {"time": t2.isoformat(), "hour_id": 2},
+        ]
+    }
+
+    # At exact boundary (13:00:00 UTC) -> should match hour_id 1
+    exact_boundary = t1
+    match = _get_current_hourly_row(hourly_data, now=exact_boundary)
+    assert match is not None and match["hour_id"] == 1
+
+    # Mid-hour (13:45:00 UTC) -> should match hour_id 1
+    mid_hour = t1 + timedelta(minutes=45)
+    match = _get_current_hourly_row(hourly_data, now=mid_hour)
+    assert match is not None and match["hour_id"] == 1
+
+    # End of hour (13:59:59 UTC) -> should match hour_id 1
+    end_hour = t1 + timedelta(minutes=59, seconds=59)
+    match = _get_current_hourly_row(hourly_data, now=end_hour)
+    assert match is not None and match["hour_id"] == 1
+
+    # Timezone conversion: stamp in AWST (+08:00), now in UTC
+    awst_tz = timezone(timedelta(hours=8))
+    t1_awst = t1.astimezone(awst_tz)
+    hourly_data_awst = {
+        "data": [
+            {"time": t1_awst.isoformat(), "hour_id": "awst_hour"},
+        ]
+    }
+    match = _get_current_hourly_row(hourly_data_awst, now=mid_hour)
+    assert match is not None and match["hour_id"] == "awst_hour"
+
+    # Naive datetimes (tzinfo is None on both stamp and now)
+    t_naive = datetime(2026, 11, 14, 15, 0, 0)
+    hourly_data_naive = {
+        "data": [
+            {"time": t_naive.isoformat(), "hour_id": "naive_hour"},
+        ]
+    }
+    match = _get_current_hourly_row(hourly_data_naive, now=t_naive + timedelta(minutes=20))
+    assert match is not None and match["hour_id"] == "naive_hour"
+
+
+def test_get_current_hourly_row_falls_back_to_first_row_when_out_of_bounds_or_invalid_stamps():
+    """Verify fallback to first available row when no timestamp matches or timestamps are malformed."""
+    t0 = datetime(2026, 11, 14, 12, 0, 0, tzinfo=timezone.utc)
+    hourly_data = {
+        "data": [
+            {"time": t0.isoformat(), "hour_id": "first"},
+            {"time": (t0 + timedelta(hours=1)).isoformat(), "hour_id": "second"},
+        ]
+    }
+    # Time far in the past
+    past_now = t0 - timedelta(hours=10)
+    assert _get_current_hourly_row(hourly_data, now=past_now)["hour_id"] == "first"
+
+    # Time far in the future
+    future_now = t0 + timedelta(hours=24)
+    assert _get_current_hourly_row(hourly_data, now=future_now)["hour_id"] == "first"
+
+    # Malformed timestamp row
+    malformed_data = {
+        "data": [
+            {"time": "invalid-timestamp", "hour_id": "malformed_first"},
+            {"time": None, "hour_id": "malformed_second"},
+        ]
+    }
+    assert _get_current_hourly_row(malformed_data, now=t0)["hour_id"] == "malformed_first"
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_hourly_fallback_overrides_sunny_and_mostly_sunny_at_night():
+    """Verify PR 345: if hourly fallback supplies sunny/mostly_sunny at night, it converts to clear."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [{"icon_descriptor": "sunny", "short_text": "Clear night sky."}]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "clear"
+    assert today["mdi_icon"] == "mdi:weather-night"
+    assert today["short_text"] == "Clear night sky."
+
+    # Also test mostly_sunny -> clear
+    collector.hourly_forecasts_data = {
+        "data": [{"icon_descriptor": "mostly_sunny", "short_text": "Mostly clear."}]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "clear"
+    assert today["mdi_icon"] == "mdi:weather-night"
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_hourly_fallback_preserves_existing_short_text():
+    """Verify that hourly fallback never overwrites pre-existing short_text."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [{"icon_descriptor": "rain", "short_text": "Heavy rain."}]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": "BOM original daily forecast text.",
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": True},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    # icon was pulled from hourly
+    assert today["icon_descriptor"] == "rain"
+    assert today["mdi_icon"] == "mdi:weather-pouring"
+    # but short_text was preserved!
+    assert today["short_text"] == "BOM original daily forecast text."
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_unrecognized_icon_descriptor_safely():
+    """Verify that unrecognized icon_descriptor returns mdi_icon=None without KeyError."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [{"icon_descriptor": "unknown_future_bom_code"}]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": False},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "unknown_future_bom_code"
+    assert today["mdi_icon"] is None
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_rain_amount_none_fallback():
+    """Verify rain_amount_max fallback when None sets amount_max and amount_range to amount_min."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "sunny",
+                "rain": {"amount": {"min": 0, "max": None}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": None,
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["rain_amount_min"] == 0
+    assert today["rain_amount_max"] == 0
+    assert today["rain_amount_range"] == 0
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_daytime_clear_converts_to_sunny():
+    """Verify that during daytime (is_night=False), clear icon_descriptor is converted to sunny."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "clear",
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"is_night": False},
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["icon_descriptor"] == "sunny"
+    assert today["mdi_icon"] == "mdi:weather-sunny"
+
+
+@pytest.mark.asyncio
+async def test_format_hourly_forecast_data_returns_early_when_missing():
+    """Verify format_hourly_forecast_data returns gracefully when data is empty or missing."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = None
+    await collector.format_hourly_forecast_data()
+    assert collector.hourly_forecasts_data is None
+
+    collector.hourly_forecasts_data = {}
+    await collector.format_hourly_forecast_data()
+    assert collector.hourly_forecasts_data == {}
+
+
 
 
 def _make_daily_forecast_payload(temp_min=None, temp_max=25, now=None):
