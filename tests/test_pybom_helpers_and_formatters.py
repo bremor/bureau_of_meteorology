@@ -489,3 +489,81 @@ async def test_format_daily_forecast_retains_daytime_temp_min_via_now_temp_later
     await collector.format_daily_forecast_data()
     today = collector.daily_forecasts_data["data"][0]
     assert today["temp_min"] == 12
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_retains_temp_min_from_now_sliding_window_evening():
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "sunny",
+                "temp_min": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {
+                    "is_night": True,
+                    "now_label": "Overnight min",
+                    "later_label": "Tomorrow's max",
+                    "temp_now": 14,
+                    "temp_later": 29,
+                },
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["temp_min"] == 14
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_retains_temp_min_from_now_sliding_window_daytime():
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "sunny",
+                "temp_min": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {
+                    "is_night": False,
+                    "now_label": "Max",
+                    "later_label": "Overnight min",
+                    "temp_now": 29,
+                    "temp_later": 15,
+                },
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["temp_min"] == 15
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_retains_temp_min_from_now_sliding_window_morning_fallback():
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": "sunny",
+                "temp_min": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {
+                    "is_night": False,
+                    "now_label": "Min",
+                    "later_label": "Max",
+                    "temp_now": 13,
+                    "temp_later": 25,
+                },
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    assert today["temp_min"] == 13

@@ -163,9 +163,20 @@ class Collector:
                 elif not is_night and icon_desc == "clear":
                     d["icon_descriptor"] = "sunny"
 
-                # Retain morning minimum temperature during afternoon/evening using BOM's now_temp_later
-                if d.get("temp_min") is None and d.get("now_temp_later") is not None:
-                    d["temp_min"] = d.get("now_temp_later")
+                # Retain morning minimum temperature during afternoon/evening using BOM's now sliding window
+                if d.get("temp_min") is None:
+                    now_label = (d.get("now_now_label") or "").lower()
+                    later_label = (d.get("now_later_label") or "").lower()
+
+                    if "min" in now_label and d.get("now_temp_now") is not None:
+                        d["temp_min"] = d.get("now_temp_now")
+                    elif "min" in later_label and d.get("now_temp_later") is not None:
+                        d["temp_min"] = d.get("now_temp_later")
+                    elif not now_label and not later_label:
+                        if d.get("now_temp_later") is not None:
+                            d["temp_min"] = d.get("now_temp_later")
+                        elif d.get("now_temp_now") is not None:
+                            d["temp_min"] = d.get("now_temp_now")
 
                 # If short_text is null, pull from current hour in hourly forecast feed
                 if d.get("short_text") is None and hourly_row:
