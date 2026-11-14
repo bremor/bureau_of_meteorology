@@ -567,3 +567,285 @@ async def test_format_daily_forecast_retains_temp_min_from_now_sliding_window_mo
     await collector.format_daily_forecast_data()
     today = collector.daily_forecasts_data["data"][0]
     assert today["temp_min"] == 13
+
+
+def _make_daily_forecast_payload(temp_min=None, temp_max=25, now=None):
+    """Helper to generate an unflattened daily forecast payload."""
+    row = {
+        "icon_descriptor": "sunny",
+        "temp_min": temp_min,
+        "temp_max": temp_max,
+        "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+        "uv": {"category": "low"},
+        "astronomical": {"sunrise_time": "06:00"},
+    }
+    if now is not None:
+        row["now"] = dict(now)
+    return {"data": [row]}
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_preserves_existing_temp_min():
+    """Verify pre-existing temp_min (e.g. 18 or 0 C) is never overridden by now window."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=18,
+        now={
+            "is_night": True,
+            "now_label": "Overnight min",
+            "later_label": "Tomorrow's max",
+            "temp_now": 14,
+            "temp_later": 29,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 18
+
+    # Also verify freezing 0 C is preserved and not treated as None/falsy
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=0,
+        now={
+            "is_night": True,
+            "now_label": "Overnight min",
+            "later_label": "Tomorrow's max",
+            "temp_now": 14,
+            "temp_later": 29,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 0
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_freezing_and_subzero_temperatures():
+    """Verify 0 C and sub-zero temperatures (e.g. alpine regions) are correctly assigned."""
+    collector = Collector(-12.463763, 130.844398)
+    # 0 C overnight min in now_temp_now
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": "Overnight min",
+            "later_label": "Tomorrow's max",
+            "temp_now": 0,
+            "temp_later": 16,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 0
+
+    # Sub-zero (-4 C) overnight min in now_temp_now
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": "Overnight min",
+            "later_label": "Tomorrow's max",
+            "temp_now": -4,
+            "temp_later": 16,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == -4
+
+    # Sub-zero (-2 C) overnight min in now_temp_later during daytime
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": False,
+            "now_label": "Max",
+            "later_label": "Overnight min",
+            "temp_now": 12,
+            "temp_later": -2,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == -2
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_handles_float_temperatures():
+    """Verify float temperatures (e.g. 14.5 C) are preserved correctly."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": "Overnight min",
+            "later_label": "Tomorrow's max",
+            "temp_now": 14.5,
+            "temp_later": 29.2,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 14.5
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_sliding_window_label_variations():
+    """Verify case-insensitivity and phrasing variations matching 'min'."""
+    collector = Collector(-12.463763, 130.844398)
+    # Uppercase 'MIN'
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": False,
+            "now_label": "MIN",
+            "later_label": "MAX",
+            "temp_now": 11,
+            "temp_later": 24,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 11
+
+    # Later label uppercase 'OVERNIGHT MIN'
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": False,
+            "now_label": "Max",
+            "later_label": "OVERNIGHT MIN",
+            "temp_now": 28,
+            "temp_later": 16,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 16
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_sliding_window_ignores_max_only_labels():
+    """Verify that if neither label contains 'min', temp_min is NOT set to a max temperature."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": False,
+            "now_label": "Max",
+            "later_label": "Tomorrow's max",
+            "temp_now": 28,
+            "temp_later": 30,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] is None
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_sliding_window_missing_temp_in_min_slot():
+    """Verify that if the min slot label is present but temp is None, temp_min stays None."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": "Overnight min",
+            "later_label": "Tomorrow's max",
+            "temp_now": None,
+            "temp_later": 29,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] is None
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_multi_day_isolation():
+    """Verify that sliding now window only affects Day 0 and leaves Day 1..N untouched."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "date": "2026-11-14T00:00:00Z",
+                "icon_descriptor": "sunny",
+                "temp_min": None,
+                "temp_max": 27,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {
+                    "is_night": True,
+                    "now_label": "Overnight min",
+                    "later_label": "Tomorrow's max",
+                    "temp_now": 15,
+                    "temp_later": 29,
+                },
+            },
+            {
+                "date": "2026-11-15T00:00:00Z",
+                "icon_descriptor": "shower",
+                "temp_min": 17,
+                "temp_max": 28,
+                "rain": {"amount": {"min": 1, "max": 5}, "chance": 60},
+                "uv": {"category": "veryhigh"},
+                "astronomical": {"sunrise_time": "06:00"},
+            },
+            {
+                "date": "2026-11-16T00:00:00Z",
+                "icon_descriptor": "mostly_sunny",
+                "temp_min": 0,
+                "temp_max": 18,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 10},
+                "uv": {"category": "high"},
+                "astronomical": {"sunrise_time": "06:00"},
+            },
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    days = collector.daily_forecasts_data["data"]
+    assert days[0]["temp_min"] == 15
+    assert days[0]["temp_max"] == 27
+    assert days[1]["temp_min"] == 17
+    assert days[1]["temp_max"] == 28
+    assert days[2]["temp_min"] == 0
+    assert days[2]["temp_max"] == 18
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_empty_or_missing_labels_fallback():
+    """Verify fallback behavior when now/later labels are absent or empty string."""
+    collector = Collector(-12.463763, 130.844398)
+    # Both labels None, temp_later present
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": None,
+            "later_label": None,
+            "temp_now": 12,
+            "temp_later": 16,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 16
+
+    # Both labels empty strings, only temp_now present
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": "",
+            "later_label": "",
+            "temp_now": 12,
+            "temp_later": None,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 12
+
+    # Both labels empty strings, neither temp present
+    collector.daily_forecasts_data = _make_daily_forecast_payload(
+        temp_min=None,
+        now={
+            "is_night": True,
+            "now_label": "",
+            "later_label": "",
+            "temp_now": None,
+            "temp_later": None,
+        },
+    )
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] is None
+
+
