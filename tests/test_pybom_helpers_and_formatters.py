@@ -634,8 +634,8 @@ def test_get_current_hourly_row_matches_time_window_and_timezone_conversions():
     assert match is not None and match["hour_id"] == "naive_hour"
 
 
-def test_get_current_hourly_row_falls_back_to_first_row_when_out_of_bounds_or_invalid_stamps():
-    """Verify fallback to first available row when no timestamp matches or timestamps are malformed."""
+def test_get_current_hourly_row_picks_nearest_row_when_out_of_bounds():
+    """Verify selection of nearest available row when current time is out of exact bounds."""
     t0 = datetime(2026, 11, 14, 12, 0, 0, tzinfo=timezone.utc)
     hourly_data = {
         "data": [
@@ -643,15 +643,18 @@ def test_get_current_hourly_row_falls_back_to_first_row_when_out_of_bounds_or_in
             {"time": (t0 + timedelta(hours=1)).isoformat(), "hour_id": "second"},
         ]
     }
-    # Time far in the past
-    past_now = t0 - timedelta(hours=10)
+    # Time in the past: closer to t0 -> picks "first"
+    past_now = t0 - timedelta(hours=2)
     assert _get_current_hourly_row(hourly_data, now=past_now)["hour_id"] == "first"
 
-    # Time far in the future
-    future_now = t0 + timedelta(hours=24)
-    assert _get_current_hourly_row(hourly_data, now=future_now)["hour_id"] == "first"
+    # Time in the future: closer to t0+1h -> picks "second"
+    future_now = t0 + timedelta(hours=5)
+    assert _get_current_hourly_row(hourly_data, now=future_now)["hour_id"] == "second"
 
-    # Malformed timestamp row
+
+def test_get_current_hourly_row_falls_back_to_first_row_when_timestamps_unparseable():
+    """Verify fallback to rows[0] when all timestamps are malformed or missing."""
+    t0 = datetime(2026, 11, 14, 12, 0, 0, tzinfo=timezone.utc)
     malformed_data = {
         "data": [
             {"time": "invalid-timestamp", "hour_id": "malformed_first"},
@@ -815,6 +818,50 @@ async def test_format_hourly_forecast_data_returns_early_when_missing():
     collector.hourly_forecasts_data = {}
     await collector.format_hourly_forecast_data()
     assert collector.hourly_forecasts_data == {}
+
+
+@pytest.mark.asyncio
+async def test_format_daily_forecast_falls_back_is_night_from_hourly_when_missing():
+    """Verify is_night falls back to current hourly row when now_is_night is missing from Day 0."""
+    collector = Collector(-12.463763, 130.844398)
+    collector.hourly_forecasts_data = {
+        "data": [
+            {
+                "is_night": True,
+                "icon_descriptor": "sunny",
+                "short_text": "Clear starry night.",
+            }
+        ]
+    }
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "icon_descriptor": None,
+                "short_text": None,
+                "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
+                "uv": {"category": "low"},
+                "astronomical": {"sunrise_time": "06:00"},
+                "now": {"temp_now": 16},  # No now_is_night
+            }
+        ]
+    }
+    await collector.format_daily_forecast_data()
+    today = collector.daily_forecasts_data["data"][0]
+    # Hourly row had is_night=True, so "sunny" was converted to "clear"
+    assert today["icon_descriptor"] == "clear"
+    assert today["mdi_icon"] == "mdi:weather-night"
+
+
+def test_flatten_dict_is_idempotent_and_safe_when_keys_missing():
+    """Verify flatten_dict does not raise KeyError when keys are absent or already popped."""
+    payload = {"amount": {"min": 2, "max": 5}}
+    flatten_dict(["amount"], payload)
+    assert payload == {"amount_min": 2, "amount_max": 5}
+
+    # Second call on already flattened dict should not raise KeyError
+    flatten_dict(["amount", "nonexistent_key"], payload)
+    assert payload == {"amount_min": 2, "amount_max": 5}
+
 
 
 

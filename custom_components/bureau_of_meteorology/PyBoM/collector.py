@@ -1,6 +1,7 @@
 """BOM data 'collector' that downloads the observation data."""
 import aiohttp
 import asyncio
+import copy
 import datetime
 import time
 import logging
@@ -24,7 +25,7 @@ MAX_CACHE_AGE = 86400  # 24 hours in seconds
 
 
 def _get_current_hourly_row(hourly_data, now=None):
-    """Find the hourly forecast row covering the current time, or fallback to first row."""
+    """Find the hourly forecast row covering the current time, or fallback to the nearest row."""
     if not hourly_data or "data" not in hourly_data or not isinstance(hourly_data["data"], list):
         return None
     rows = [r for r in hourly_data["data"] if isinstance(r, dict)]
@@ -32,6 +33,8 @@ def _get_current_hourly_row(hourly_data, now=None):
         return None
     if now is None:
         now = datetime.datetime.now(datetime.timezone.utc)
+
+    parsed_rows = []
     for row in rows:
         time_str = row.get("time")
         if not time_str:
@@ -40,12 +43,24 @@ def _get_current_hourly_row(hourly_data, now=None):
             stamp = datetime.datetime.fromisoformat(time_str)
         except (ValueError, TypeError):
             continue
+
         if stamp.tzinfo is not None:
             target_now = now if now.tzinfo is not None else now.replace(tzinfo=stamp.tzinfo)
-            if stamp <= target_now < stamp + datetime.timedelta(hours=1):
-                return row
-        elif now.tzinfo is None and stamp <= now < stamp + datetime.timedelta(hours=1):
+        else:
+            target_now = now.replace(tzinfo=None) if now.tzinfo is not None else now
+
+        parsed_rows.append((row, stamp, target_now))
+
+        if stamp <= target_now < stamp + datetime.timedelta(hours=1):
             return row
+
+    # If no row covers the exact 1-hour window, choose the row closest in time
+    if parsed_rows:
+        return min(
+            parsed_rows,
+            key=lambda item: abs((item[1] - item[2]).total_seconds()),
+        )[0]
+
     return rows[0]
 
 
@@ -81,7 +96,7 @@ class Collector:
                     if response.status == 200:
                         data = await response.json()
                         # Update cache with new data and timestamp
-                        self._cache[cache_key]["data"] = data
+                        self._cache[cache_key]["data"] = copy.deepcopy(data)
                         self._cache[cache_key]["timestamp"] = time.time()
                         return data
                     else:
@@ -109,7 +124,7 @@ class Collector:
                         _LOGGER.info(
                             f"Returning cached {cache_key} data from {int(cache_age/60)} minutes ago"
                         )
-                        return cached
+                        return copy.deepcopy(cached)
                     else:
                         _LOGGER.error(f"No cached {cache_key} data available")
                         return None
@@ -149,6 +164,10 @@ class Collector:
                 icon_desc = d.get("icon_descriptor")
 
                 hourly_row = _get_current_hourly_row(self.hourly_forecasts_data)
+
+                # Fallback is_night from hourly feed if missing from daily now dictionary
+                if is_night is None and hourly_row:
+                    is_night = hourly_row.get("is_night")
 
                 # If daily icon is null (e.g. late evening before local midnight rollover),
                 # pull descriptor from current hour in the hourly forecast feed if available:
