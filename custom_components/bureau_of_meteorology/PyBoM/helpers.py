@@ -5,7 +5,7 @@ import socket
 
 def flatten_dict(keys, dict):
     for key in keys:
-        if dict[key] is not None:
+        if dict.get(key) is not None:
             flatten = dict.pop(key)
             for inner_key, value in flatten.items():
                 dict[key + "_" + inner_key] = value
