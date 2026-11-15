@@ -1,9 +1,10 @@
-import asyncio
 from datetime import datetime, timedelta, timezone
-import sys
 from pathlib import Path
+import sys
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
+import aiohttp
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -486,7 +487,12 @@ async def test_format_daily_forecast_retains_daytime_temp_min_via_now_temp_later
                 "rain": {"amount": {"min": 0, "max": 0}, "chance": 0},
                 "uv": {"category": "low"},
                 "astronomical": {"sunrise_time": "06:00"},
-                "now": {"is_night": True, "temp_later": 12},
+                "now": {
+                    "is_night": True,
+                    "now_label": "Max",
+                    "later_label": "Overnight min",
+                    "temp_later": 12,
+                },
             }
         ]
     }
@@ -1101,9 +1107,9 @@ async def test_format_daily_forecast_multi_day_isolation():
 
 @pytest.mark.asyncio
 async def test_format_daily_forecast_empty_or_missing_labels_fallback():
-    """Verify fallback behavior when now/later labels are absent or empty string."""
+    """Verify temp_min remains None when now/later labels are absent, empty, or lack 'min'."""
     collector = Collector(-12.463763, 130.844398)
-    # Both labels None, temp_later present
+    # Both labels None, temp_later present (do not infer min)
     collector.daily_forecasts_data = _make_daily_forecast_payload(
         temp_min=None,
         now={
@@ -1115,7 +1121,7 @@ async def test_format_daily_forecast_empty_or_missing_labels_fallback():
         },
     )
     await collector.format_daily_forecast_data()
-    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 16
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] is None
 
     # Both labels empty strings, only temp_now present
     collector.daily_forecasts_data = _make_daily_forecast_payload(
@@ -1129,7 +1135,7 @@ async def test_format_daily_forecast_empty_or_missing_labels_fallback():
         },
     )
     await collector.format_daily_forecast_data()
-    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 12
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] is None
 
     # Both labels empty strings, neither temp present
     collector.daily_forecasts_data = _make_daily_forecast_payload(
@@ -1144,5 +1150,239 @@ async def test_format_daily_forecast_empty_or_missing_labels_fallback():
     )
     await collector.format_daily_forecast_data()
     assert collector.daily_forecasts_data["data"][0]["temp_min"] is None
+
+
+class _MockResponse:
+    def __init__(self, data=None, status=200, error=None):
+        self._data = data
+        self.status = status
+        self._error = error
+
+    async def __aenter__(self):
+        if self._error is not None:
+            raise self._error
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+    async def json(self):
+        return self._data
+
+
+class _MockSession:
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.call_count = 0
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+    def get(self, _url):
+        self.call_count += 1
+        if self._responses:
+            return self._responses.pop(0)
+        raise RuntimeError("Ran out of mocked responses")
+
+
+@pytest.mark.asyncio
+async def test_fetch_with_retry_deep_copies_into_cache_preventing_formatter_mutation():
+    """Verify _fetch_with_retry deep-copies data into cache so formatters cannot corrupt cached raw data."""
+    collector = Collector(-31.95, 115.86)
+    raw_obs = {
+        "data": {
+            "wind": {"speed_kilometre": 25, "direction": "ENE"},
+            "gust": {"speed_kilometre": 35},
+            "temp": 22.4,
+        }
+    }
+    session = _MockSession([_MockResponse(data=raw_obs, status=200)])
+    result = await collector._fetch_with_retry(session, "http://api.bom.gov.au/obs", "observations")
+
+    # Result has raw payload structure
+    assert result == raw_obs
+    cached = collector._cache["observations"]["data"]
+    assert cached == raw_obs
+    assert cached is not result
+    assert cached["data"]["wind"] is not result["data"]["wind"]
+
+    # Simulating format_observations_data mutating result in-place
+    flatten_dict(["wind"], result["data"])
+    flatten_dict(["gust"], result["data"])
+    assert "wind" not in result["data"]
+    assert "gust" not in result["data"]
+    assert result["data"]["wind_speed_kilometre"] == 25
+
+    # Cache must still contain the nested dicts unmutated
+    assert "wind" in cached["data"]
+    assert cached["data"]["wind"] == {"speed_kilometre": 25, "direction": "ENE"}
+    assert "gust" in cached["data"]
+    assert cached["data"]["gust"] == {"speed_kilometre": 35}
+
+
+@pytest.mark.asyncio
+async def test_fetch_with_retry_repeated_fallbacks_preserve_nested_cache_across_formatting(monkeypatch):
+    """Verify repeated network failures return deep-copied cached data that survives repeated in-place formatting."""
+    monkeypatch.setattr("custom_components.bureau_of_meteorology.PyBoM.collector.asyncio.sleep", AsyncMock())
+    collector = Collector(-31.95, 115.86)
+
+    raw_daily = {
+        "data": [
+            {
+                "rain": {"amount": {"min": 2, "max": 8}, "chance": 80},
+                "uv": {"max_index": 6},
+                "astronomical": {"sunrise_time": "06:12"},
+                "now": {
+                    "is_night": True,
+                    "now_label": "Overnight min",
+                    "temp_now": 14,
+                    "later_label": "Tomorrow's max",
+                    "temp_later": 26,
+                },
+                "temp_max": 28,
+                "temp_min": None,
+                "icon_descriptor": "rain",
+            }
+        ]
+    }
+
+    # 1. Initial successful fetch primes cache
+    init_session = _MockSession([_MockResponse(data=raw_daily, status=200)])
+    fetched = await collector._fetch_with_retry(init_session, "http://api.bom.gov.au/daily", "daily_forecasts")
+    collector.daily_forecasts_data = fetched
+    await collector.format_daily_forecast_data()
+
+    # Formatter flattened the daily_forecasts_data in place
+    assert "rain" not in collector.daily_forecasts_data["data"][0]
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_min"] == 2
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_max"] == 8
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 14
+
+    # 2. First transport failure: fallback to cache
+    fail_session_1 = _MockSession([
+        _MockResponse(error=aiohttp.ClientConnectionError("Connection timeout")),
+        _MockResponse(error=aiohttp.ClientConnectionError("Connection timeout")),
+        _MockResponse(error=aiohttp.ClientConnectionError("Connection timeout")),
+    ])
+    fallback_1 = await collector._fetch_with_retry(fail_session_1, "http://api.bom.gov.au/daily", "daily_forecasts")
+    assert fallback_1 is not None
+    assert fallback_1 is not collector._cache["daily_forecasts"]["data"]
+    assert "rain" in fallback_1["data"][0]
+    assert fallback_1["data"][0]["rain"]["amount"]["min"] == 2
+
+    # Formatting fallback_1 must succeed without KeyError: 'rain'
+    collector.daily_forecasts_data = fallback_1
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_min"] == 2
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 14
+
+    # 3. Second transport failure (repeated fallback): cache must STILL be intact
+    fail_session_2 = _MockSession([
+        _MockResponse(error=aiohttp.ClientConnectionError("Connection timeout")),
+        _MockResponse(error=aiohttp.ClientConnectionError("Connection timeout")),
+        _MockResponse(error=aiohttp.ClientConnectionError("Connection timeout")),
+    ])
+    fallback_2 = await collector._fetch_with_retry(fail_session_2, "http://api.bom.gov.au/daily", "daily_forecasts")
+    assert fallback_2 is not None
+    assert fallback_2 is not collector._cache["daily_forecasts"]["data"]
+    assert "rain" in fallback_2["data"][0]
+
+    # Formatting fallback_2 must also succeed without KeyError
+    collector.daily_forecasts_data = fallback_2
+    await collector.format_daily_forecast_data()
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_min"] == 2
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 14
+
+
+@pytest.mark.asyncio
+async def test_async_update_repeated_cache_fallbacks_with_nested_wind_and_rain(monkeypatch):
+    """End-to-end regression for #349: async_update with nested wind/rain survives repeated fallbacks."""
+    monkeypatch.setattr("custom_components.bureau_of_meteorology.PyBoM.collector.asyncio.sleep", AsyncMock())
+    collector = Collector(-31.95, 115.86)
+    collector.locations_data = {"data": {"timezone": "Australia/Perth"}}
+
+    def make_success_responses():
+        return [
+            # observations with nested wind and gust
+            _MockResponse(data={
+                "data": {
+                    "temp": 20.5,
+                    "wind": {"speed_kilometre": 18, "direction": "SW"},
+                    "gust": {"speed_kilometre": 28},
+                }
+            }),
+            # hourly forecasts with nested rain and wind
+            _MockResponse(data={
+                "data": [
+                    {
+                        "time": "2024-01-01T12:00:00Z",
+                        "rain": {"amount": {"min": 0, "max": 1}},
+                        "wind": {"speed_kilometre": 15},
+                        "icon_descriptor": "sunny",
+                    }
+                ]
+            }),
+            # daily forecasts with nested rain, uv, astronomical, now
+            _MockResponse(data={
+                "data": [
+                    {
+                        "date": "2024-01-01T00:00:00Z",
+                        "rain": {"amount": {"min": 0, "max": 5}, "chance": 40},
+                        "uv": {"max_index": 8},
+                        "astronomical": {"sunrise_time": "05:30"},
+                        "now": {
+                            "is_night": False,
+                            "now_label": "Overnight min",
+                            "temp_now": 12,
+                            "later_label": "Tomorrow's max",
+                            "temp_later": 25,
+                        },
+                        "temp_max": 25,
+                        "temp_min": None,
+                        "icon_descriptor": "sunny",
+                    }
+                ]
+            }),
+            # warnings
+            _MockResponse(data={"data": []}),
+        ]
+
+    # Cycle 1: Successful initial update
+    session_1 = _MockSession(make_success_responses())
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **_kw: session_1)
+    await collector.async_update(no_throttle=True)
+
+    assert collector.last_update_success is True
+    assert collector.observations_data["data"]["wind_speed_kilometre"] == 18
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_max"] == 5
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 12
+
+    # Cycle 2: Network failure across all endpoints -> fallback to cache
+    fail_responses = [
+        _MockResponse(error=aiohttp.ClientConnectionError("DNS failure"))
+        for _ in range(12)  # 3 attempts x 4 endpoints
+    ]
+    session_2 = _MockSession(fail_responses)
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **_kw: session_2)
+    await collector.async_update(no_throttle=True)
+
+    assert collector.last_update_success is False
+    # Cache fallback was formatted without KeyError: 'rain' or 'wind'
+    assert collector.observations_data["data"]["wind_speed_kilometre"] == 18
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_max"] == 5
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 12
+
+    # Cycle 3: Repeated network failure -> second consecutive fallback to cache
+    session_3 = _MockSession(fail_responses)
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **_kw: session_3)
+    await collector.async_update(no_throttle=True)
+
+    assert collector.last_update_success is False
+    assert collector.observations_data["data"]["wind_speed_kilometre"] == 18
+    assert collector.daily_forecasts_data["data"][0]["rain_amount_max"] == 5
+    assert collector.daily_forecasts_data["data"][0]["temp_min"] == 12
 
 
