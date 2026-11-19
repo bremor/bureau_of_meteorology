@@ -6,6 +6,7 @@ from typing import Any
 import iso8601
 import zoneinfo
 import math #Required for calculated observations (e.g dew point)
+import string
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
@@ -291,7 +292,8 @@ class ObservationSensor(SensorBase):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self.location_name} {self.sensor_name.replace('_', ' ').title()}"
+        # capwords rather than title() so "9am" is not rendered as "9Am"
+        return f"{self.location_name} {string.capwords(self.sensor_name.replace('_', ' '))}"
 
 
 class ForecastSensor(SensorBase):
