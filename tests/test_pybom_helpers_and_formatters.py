@@ -278,6 +278,50 @@ def test_forecast_sensor_uv_forecast_state_uses_localised_time_and_titlecase():
     assert "UV Index predicted to reach 7" in sensor.state
 
 
+def _uv_forecast_sensor(uv_start_time, uv_end_time):
+    collector = Collector(-37.95, 145.05)
+    collector.locations_data = {"data": {"timezone": "Australia/Melbourne"}}
+    collector.daily_forecasts_data = {
+        "data": [
+            {
+                "uv_category": "moderate",
+                "uv_start_time": uv_start_time,
+                "uv_end_time": uv_end_time,
+                "uv_max_index": 4,
+            }
+        ],
+        "metadata": {},
+    }
+    hass_data = {
+        "collector": collector,
+        "coordinator": SimpleNamespace(
+            async_add_listener=lambda *_args, **_kwargs: None
+        ),
+    }
+    return ForecastSensor(
+        hass_data,
+        "Home",
+        0,
+        "uv_forecast",
+        SensorEntityDescription(key="uv_forecast"),
+    )
+
+
+def test_forecast_sensor_uv_forecast_state_is_unknown_when_end_time_missing():
+    sensor = _uv_forecast_sensor("2026-04-05T23:10:00Z", None)
+
+    assert sensor.state is None
+
+
+def test_forecast_sensor_uv_forecast_state_with_start_and_end_time():
+    sensor = _uv_forecast_sensor("2026-04-05T23:10:00Z", "2026-04-06T04:20:00Z")
+
+    assert sensor.state == (
+        "Sun protection recommended from 9:10am to 2:20pm, "
+        "UV Index predicted to reach 4 [Moderate]"
+    )
+
+
 @pytest.mark.asyncio
 async def test_format_daily_forecast_data_flattens_and_normalizes_current_day():
     collector = Collector(-12.463763, 130.844398)
