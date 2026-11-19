@@ -12,7 +12,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from homeassistant.components.sensor import SensorEntityDescription
+from homeassistant.util import slugify
 
+from custom_components.bureau_of_meteorology.const import OBSERVATION_SENSOR_TYPES
 from custom_components.bureau_of_meteorology.PyBoM.collector import (
     Collector,
     _get_current_hourly_row,
@@ -192,6 +194,34 @@ def test_observation_sensor_state_and_attributes_for_temperature_and_dew_point()
         == "2024-01-01T10:00:00+09:30"
     )
     assert max_sensor.extra_state_attributes["id"] == "abc"
+
+
+def _observation_sensor(sensor_name):
+    hass_data = {
+        "collector": Collector(-37.95, 145.05),
+        "coordinator": SimpleNamespace(
+            async_add_listener=lambda *_args, **_kwargs: None
+        ),
+    }
+    return ObservationSensor(
+        hass_data, "Home", sensor_name, SensorEntityDescription(key=sensor_name)
+    )
+
+
+def test_observation_sensor_name_keeps_lowercase_after_digits():
+    assert _observation_sensor("rain_since_9am").name == "Home Rain Since 9am"
+
+
+@pytest.mark.parametrize(
+    "sensor_name", [description.key for description in OBSERVATION_SENSOR_TYPES]
+)
+def test_observation_sensor_name_change_does_not_change_entity_ids(sensor_name):
+    previous_name = f"Home {sensor_name.replace('_', ' ').title()}"
+    name = _observation_sensor(sensor_name).name
+
+    assert slugify(name) == slugify(previous_name)
+    if sensor_name != "rain_since_9am":
+        assert name == previous_name
 
 
 def test_observation_sensor_attributes_ignore_null_station_data():
