@@ -357,6 +357,12 @@ class ForecastSensor(SensorBase):
                         f'{self.collector.daily_forecasts_data["data"][self.day]["uv_max_index"]} '
                         f'[{self.collector.daily_forecasts_data["data"][self.day]["uv_category"].replace("veryhigh", "very high").title()}]'
                     )
+                elif (
+                    self.collector.daily_forecasts_data["data"][self.day]["uv_end_time"]
+                    is None
+                ):
+                    # BOM occasionally sends a start time without an end time.
+                    return None
                 else:
                     utc = timezone.utc
                     local = zoneinfo.ZoneInfo(self.collector.locations_data["data"]["timezone"])
