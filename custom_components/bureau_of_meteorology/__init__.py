@@ -71,6 +71,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except ClientConnectorError as ex:
         raise ConfigEntryNotReady from ex
 
+    # The collector logs and swallows request errors, so check that it
+    # actually got data before creating entities that depend on it.
+    if collector.locations_data is None:
+        raise ConfigEntryNotReady("Unable to retrieve location data from BOM")
+
     coordinator = BomDataUpdateCoordinator(hass=hass, collector=collector)
     await coordinator.async_refresh()
 
